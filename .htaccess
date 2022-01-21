@@ -1,0 +1,5 @@
+RewriteEngine on
+
+RewriteCond %{HTTP_REFERER} !^http(s)?://(www\.)?domain.com [NC]
+
+RewriteRule !antiddos.phtml http://www.domain.com/antiddos.phtml?%{REQUEST_URI} [QSA]
