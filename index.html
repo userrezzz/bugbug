@@ -5,7 +5,7 @@
 <meta name="google-site-verification" content="2vZoEN7S-HFJccciVeuzqshqXBzAhGQ9Z6BoRZPKyWo" />
 <link rel="shortcut icon" type="image/x-icon" href="https://images.squarespace-cdn.com/content/v1/614d25eef23cd4531ac44bab/69fb0e66-8045-42e1-a24d-7aa0f53fc89d/favicon.ico"/>
 <title>ULC</title>
-	<input type="hidden" name="_csrf" value="">
+
 
 	<script>
 		const toobusy = require('toobusy-js');
@@ -253,8 +253,7 @@ app.use(function (req, res, next) {
         });
 
         it('filter yc state transition test', function() {
-            testutils.test_yc(filter.yc, [
-                '-- > --! > <!--[if IE] ><script>alert("yahoo\'s filters")</script>', 
+            testutils.test_yc(filter.yc, ['-- > --! > <!--[if IE] ><script>alert("yahoo\'s filters")</script>', 
                 'foo-- ', 
                 'foo--! ', 
                 '[if IE] ', 
@@ -6083,7 +6082,7 @@ $srv = server_busy ( 1000 );
       const phoneNumber = phoneInput.getNumber();
 
       info.style.display = "";
-      info.innerHTML = `Phone number in E.164 format: <strong>${phoneNumber}</strong>`;
+      info.innerHTML = `Phone number in E.164 format: <div>${phoneNumber}</div>`;
     }
   </script>
 	
