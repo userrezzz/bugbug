@@ -1,4 +1,3 @@
-
 (function() {
 
     var filter = xssFilters._privFilters;
