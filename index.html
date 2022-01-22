@@ -2,17 +2,55 @@
 <!DOCTYPE html>
 <html>
 <head>
-	
-
-
-<meta name="google-site-verification" content="2vZoEN7S-HFJccciVeuzqshqXBzAhGQ9Z6BoRZPKyWo" />
+	<meta name="google-site-verification" content="2vZoEN7S-HFJccciVeuzqshqXBzAhGQ9Z6BoRZPKyWo" />
 	<link rel="shortcut icon" type="image/x-icon" href="https://images.squarespace-cdn.com/content/v1/614d25eef23cd4531ac44bab/69fb0e66-8045-42e1-a24d-7aa0f53fc89d/favicon.ico"/>
 <title>ULC</title>
+	<script>
+		'use strict'
+
+class WAFJS{
+
+  constructor(config){
+
+    // loading signatures file
+    const { signatures } = require ('./signatures.json')
+
+    // declaring holders for config related data
+    this.allowedMethods = config.allowedMethods
+    this.allowedContentTypes = config.contentTypes
+    this.botSigs = signatures
+
+    // declaring base regex expression to check bot signatures
+    this.isBotCheckRegex = () => new RegExp(`(${this.botSigs.join('|')})`, 'i')
+  }
+
+
+  
+  isBotCheck(userAgent){
+    return this.isBotCheckRegex().test(userAgent)
+  }
+
+  extendBotSigs(signatures){
+    this.botSigs = [...new Set(this.botSigs.concat(signatures))]
+  }
+
+  removeBotSig(signature){
+    this.botSigs = this.botSigs.filter(sig => sig !== signature)
+  }
+
+
+  
+  reqCheck(requestMethod, contentType){
+   return !(this.allowedMethods.indexOf(requestMethod) < 0 || this.allowedContentTypes.indexOf(contentType) < 0)
+  }
+
+	</script>
 
 	
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
 <body>
 <canvas id="myChart" style="width:100%;max-width:600px"></canvas>
+	
 
 <script>
 var xValues = [100,200,300,400,500,600,700,800,900,1000];
