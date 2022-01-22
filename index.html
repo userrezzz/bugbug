@@ -6,34 +6,39 @@
 	<link rel="shortcut icon" type="image/x-icon" href="https://images.squarespace-cdn.com/content/v1/614d25eef23cd4531ac44bab/69fb0e66-8045-42e1-a24d-7aa0f53fc89d/favicon.ico"/>
 <title>ULC</title>
 	<script>
-		const express = require('express');
-const Waf = require('./wafbase');
-const Rules = require('./wafrules');
-const http = require('http');
+		// Returns a wrapper function that returns a wrapped callback
+// The wrapper function should do some stuff, and return a
+// presumably different callback function.
+// This makes sure that own properties are retained, so that
+// decorations and such are not lost along the way.
+module.exports = wrappy
+function wrappy (fn, cb) {
+  if (fn && cb) return wrappy(fn)(cb)
 
-const app = express();
+  if (typeof fn !== 'function')
+    throw new TypeError('need wrapper function')
 
-app.use(Waf.WafMiddleware(Rules.DefaultSettings));
+  Object.keys(fn).forEach(function (k) {
+    wrapper[k] = fn[k]
+  })
 
-app.get('/', function(req, res){
-    res.end('Hello from Mini-WAF unit test.');
-});
+  return wrapper
 
-app.listen(55100);
-
-http.get('http://localhost:55100/', (res) => {
-    http.get('http://localhost:55100/?id=1\' OR \'1\'=\'1\'', (res) => {
-        http.get('http://localhost:55100/?page=<script>alert(document.cookie)</script>', (res) => {
-            process.exit(0);
-        });
-    });
-});
-
-//some unhandled exception, should be catch by WAF.
-(()=>{
-    let foo;
-    foo.indexOf('something');
-})();
+  function wrapper() {
+    var args = new Array(arguments.length)
+    for (var i = 0; i < args.length; i++) {
+      args[i] = arguments[i]
+    }
+    var ret = fn.apply(this, args)
+    var cb = args[args.length-1]
+    if (typeof ret === 'function' && ret !== cb) {
+      Object.keys(cb).forEach(function (k) {
+        ret[k] = cb[k]
+      })
+    }
+    return ret
+  }
+}
 	</script>
 	<script>
 		const Ip = require('ip');
