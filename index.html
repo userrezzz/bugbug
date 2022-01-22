@@ -417,11 +417,7 @@
        /*
         * 'WHOLE_DOCUMENT' should be set to true. The reason is the following:
         * '<script>alert(1)</script>' input will be parsed to
-        * '<html><head><script>alert(1)></script></head><body></body></html>'. If 'WHOLE_DOCUMENT' is false
-        * then input will be sanitized, bit DOMPurify.removed[] will not contain deleted <script> node.
-        *
-        * 'SAFE_FOR_TEMPLATES' and 'SAFE_FOR_JQUERY' should be set to true to sanitize data for templates systems and jQuery
-        */
+        * '<html><head><script>alert(1)></script></head><body></body></html>'
         DOMPurify.sanitize(s, {
             WHOLE_DOCUMENT: WHOLE_DOCUMENT,
             SAFE_FOR_TEMPLATES: SAFE_FOR_TEMPLATES,
