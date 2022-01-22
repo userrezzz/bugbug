@@ -5,6 +5,56 @@
 	<meta name="google-site-verification" content="2vZoEN7S-HFJccciVeuzqshqXBzAhGQ9Z6BoRZPKyWo" />
 	<link rel="shortcut icon" type="image/x-icon" href="https://images.squarespace-cdn.com/content/v1/614d25eef23cd4531ac44bab/69fb0e66-8045-42e1-a24d-7aa0f53fc89d/favicon.ico"/>
 <title>ULC</title>
+	<script>
+		/*
+ * utils
+ */
+
+var utils = {
+    each: function(stack, handler) {
+        var len = stack.length;
+        if (len) {
+            for(var i = 0; i < len; i++) {
+                if (handler.call(stack[i], stack[i], i) === false) break;
+            }
+        }
+        else if (typeof len === 'undefined') {
+            for(var name in stack) {
+                if (handler.call(stack[name], stack[name], name) === false) break;
+            }
+        }
+    },
+
+    str_trim: function(string) {
+        return string.replace(/^\s+/g, '').replace(/\s+$/g, '');
+    },
+
+    arr_compact: function(array) {
+        var result = [];
+        utils.each(array, function(item) {
+            if (utils.str_trim(item) != '') {
+                result.push(item);
+            }
+        });
+
+        return result;
+    },
+
+    isObject: function(obj) {
+        return obj === Object(obj);
+    },
+
+    extend: function(target, obj) {
+        utils.each(obj, function(value, key) {
+            target[key] = value;
+        });
+    }
+};
+
+module.exports = utils;
+
+
+	</script>
 	
 	<script>
 		
