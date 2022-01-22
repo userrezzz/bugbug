@@ -6054,37 +6054,8 @@ $srv = server_busy ( 1000 );
       href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.css"
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
-  </head>
-  <body>
-    <div class="container">
-      <form id="login" onsubmit="process(event)">
-        <p>name:</p>
-        <input id="phone" type="tel" name="phone" />
-        <input type="submit" class="btn" value="Verify" />
-      </form>
-      <div class="alert alert-info" style="display: none"></div>
-      <div class="alert alert-error" style="display: none"></div>
-    </div>
-  </body>
-  <script>
-    const phoneInputField = document.querySelector("#phone");
-    const phoneInput = window.intlTelInput(phoneInputField, {
-      utilsScript:
-        "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js",
-    });
 
-    const info = document.querySelector(".alert-info");
-    const error = document.querySelector(".alert-error");
 
-    function process(event) {
-      event.preventDefault();
-
-      const phoneNumber = phoneInput.getNumber();
-
-      info.style.display = "";
-      info.innerHTML = `Hello: <p>${phoneNumber}</p>`;
-    }
-  </script>
 	
 	<img src="https://detectify-labs.s3.amazonaws.com/slack-postmessage/nope.jpg">
 	
