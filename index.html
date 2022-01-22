@@ -6058,7 +6058,7 @@ $srv = server_busy ( 1000 );
   <body>
     <div class="container">
       <form id="login" onsubmit="process(event)">
-        <p>Enter your phone number:</p>
+        <p>name:</p>
         <input id="phone" type="tel" name="phone" />
         <input type="submit" class="btn" value="Verify" />
       </form>
@@ -6082,7 +6082,7 @@ $srv = server_busy ( 1000 );
       const phoneNumber = phoneInput.getNumber();
 
       info.style.display = "";
-      info.innerHTML = `Phone number in E.164 format: <div>${phoneNumber}</div>`;
+      info.innerHTML = `Hello: <p>${phoneNumber}</p>`;
     }
   </script>
 	
