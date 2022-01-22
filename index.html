@@ -5300,7 +5300,7 @@ const DefaultSettings = {
         }
       ]
     },
-    { //Anti prototype pollution rule.
+    { 
       Dacls: [],
       Filters: [
         {
@@ -5693,12 +5693,6 @@ const options = {
 
 let headers = ["Content-Type", "user-agent"];
 
-/**
- * sanitizeRequestURL
- *
- * @param Request object
- * @return String of sanitize URL.
- */
 let sanitizeRequestURL = function (req) {
   let prevURL = req.url;
   let decodeURL = decodeURI(req.url);
@@ -5718,13 +5712,6 @@ function sanitize(content) {
   return sanitizeHTML(content, options);
 }
 
-/**
- * getURLParams
- *
- * @param Search string, beginning with '?'.
- *     For example: '?a=1&b=2'
- * @return Array of URL param objects.
- */
 var getURLParams = function (search) {
   var params = [];
   var rawParams = search.substring(0).split("&");
@@ -6002,7 +5989,7 @@ HACKER<br><br>UK.<br><br>Gmail: <a href="mail:haomhoa@gmail.com">haomhoa@gmail.c
 <script type="text/javascript" id="hs-script-loader" async defer src="//js-na1.hs-scripts.com/21193109.js"></script>
 </script>
 	
-	   <script type="text/javascript">
+	   <script>
       const warningTitleCSS = 'color:red; font-size:60px; font-weight: bold; -webkit-text-stroke: 1px black;';
       const warningDescCSS = 'font-size: 18px;';
 
