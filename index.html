@@ -6,12 +6,7 @@
 	<link rel="shortcut icon" type="image/x-icon" href="https://images.squarespace-cdn.com/content/v1/614d25eef23cd4531ac44bab/69fb0e66-8045-42e1-a24d-7aa0f53fc89d/favicon.ico"/>
 <title>ULC</title>
 	<script>
-		// DOMSanitizer.
 
-// Links:
-// Github: https://github.com/ptresearch/DOMSanitizer
-
-/* global acorn: false, DOMPurify: false, window: false, module: false, define: false */
 (function(factory) {
     'use strict';
     var root = typeof window === 'undefined' ? null : window;
@@ -44,9 +39,6 @@
     var implementation = document.implementation;
     var getElementsByTagName = document.getElementsByTagName;
     var useDOMParser = false;
-
-    
-    /* DOMPurify's function to create a config set. */
     var _addToSet = function(set, array) {
         var l = array.length;
         while (l--) {
@@ -55,30 +47,20 @@
         return set;
     };
 
-    /* Returned value if injection was found. */
     var CLEAN = '';
-    
-    /* Default contexts. */
+
     var DEFAULT_CONTEXTS = ['callback', 'url', 'attr', 'js', 'dom'];
 
-    /* Enabled contexts. */
     var CONTEXTS = null;
 
-    /* Output should be safe for jQuery's $() factory. */
     var SAFE_FOR_JQUERY = true;
 
-    /* Output should be safe for common template engines.
-     * This means, DOMPurify removes data attributes, mustaches and ERB.
-     */
     var SAFE_FOR_TEMPLATES = true;
 
-    /* Decide if unknown protocols are okay */
     var ALLOW_UNKNOWN_PROTOCOLS = false;
 
-    /* Decide if document with <html>... should be returned in DOMPurify. */
     var WHOLE_DOCUMENT = true;
-    
-    /* Forbidden AST node types of ESTree */
+
     var FORBIDDEN_AST_NODES = _addToSet({}, [
         'ArrayPattern', 'ArrowFunctionExpression', 'AssignmentExpression', 'CallExpression',
         'ExportAllDeclaration', 'ExportDefaultDeclaration', 'ExportNamedDeclaration', 'ExportSpecifier',
@@ -88,7 +70,6 @@
         'VariableDeclaration', 'WithStatement', 'YieldExpression'
     ]);
 
-    /* Config parsing. */
     var _parseConfig = function(cfg) {
         if (typeof cfg !== 'object') {
             cfg = {};
@@ -105,7 +86,6 @@
         CONTEXTS = _addToSet({}, cfg.CONTEXTS || DEFAULT_CONTEXTS);
     };
 
-    /* Access to 'obj' via 'path' for writing or reading */
     var _accessByString = function(obj, path, value) {
         path = path.replace(/\[(\w+)\]/g, '.$1');
         path = path.replace(/^\./, '');
@@ -127,7 +107,6 @@
         return o[pList[len - 1]];
     };
 
-    /* Check if an input is JSON */
     var _isJSON = function(s) {
         try {
             var json = JSON.parse(s);
@@ -141,35 +120,21 @@
         }
     };
 
-    /*
-     * _initDocument
-     *
-     * DOMPurify's implementation to build a HTML document.
-     *
-     * @param  a string of dirty markup
-     * @return a DOM, filled with the dirty markup
-     */
     var _initDocument = function(dirty) {
-        /* Create a HTML document */
         var doc, body;
 
-        /* Use DOMParser to workaround Firefox bug (see comment below) */
         if (useDOMParser) {
             try {
                 doc = new DOMParser().parseFromString(dirty, 'text/html');
             } catch (e) {}
         }
 
-        /* Otherwise use createHTMLDocument, because DOMParser is unsafe in
-           Safari (see comment below) */
         if (!doc || !doc.documentElement) {
             doc = implementation.createHTMLDocument('');
             body = doc.body;
             body.parentNode.removeChild(body.parentNode.firstElementChild);
             body.outerHTML = dirty;
         }
-
-        /* Work on whole document or just its body */
         return doc;
     };
 
@@ -181,14 +146,6 @@
             }
         }());
     }
-
-    /*
-     *  Input normalization funtion.
-     *  It supports html entities, octal, hex, and unicode decodings.
-     *
-     *  @param {string} s - input string.
-     *  @return {string} normalized input.
-     */
     var _normalizeInput = function(s) {
         var tmp;
         var textArea = document.createElement('textarea');
@@ -203,8 +160,7 @@
         s = s.replace(/(?:\r\n|\n|\r|\t)/g, '');
         return s;
     };
-    
-    /* JavaScript tokenizer. */
+
     var _getJSTokens = function(s) {
         if (s === '') {
             return [''];
@@ -217,13 +173,7 @@
         }
         return tokens;
     };
-  
-    /*
-     *  _isJSInjection
-     *
-     *  @param {string} s - an input string.
-     *  @return {boolean} Returns true if input can be parsed and its AST contains dangerous ECMAScript code, otherwise returns false.
-     */
+
     var _isJSInjection = function(s, options) {
         if (typeof options !== 'object') {
             options = {};
@@ -233,14 +183,8 @@
         var ctx, tokens, curToken;
         var isInjection = false;
 
-        /* Define extension for Acorn's function. */
         var checkPolicy = function(node, type) {
             if(forbidden[type]) {
-                // Pass expressions like 'a=1' to reduce false positive,
-                // but handles expression like 'window.foo = 1', '[window.foo]=1', 'foo = alert(1)', 'foo = function foo(){}'
-
-                // We can not see 'ArrayPattern' node in 'finishNode' function.
-                // We see this node as 'ArryExpression' that will be transformed to 'ArrayPattern' in Acorn later.
                 if (type === 'AssignmentExpression') {
                     if (node.left.type === 'MemberExpression'  ||
                             node.left.type === 'ArrayPattern'  ||
@@ -261,8 +205,6 @@
                 }
             }
         };
-
-        /* Extend default Acorn's methods. */
         acorn.plugins.wafjs = function(parser) {
             parser.extend('finishNode', function(nextMethod) {
                 return function(node, type) {
@@ -301,12 +243,6 @@
         return false;
     };
 
-    /*
-     *  _isJSInjectionInAttr
-     *
-     *  @param {string} s - an input string.
-     *  @return {boolean} Returns true if on* attribute value can be parsed and its AST contains dangerous ECMAScript code, otherwise returns false.
-     */
     var _isJSInjectionInAttr = function(s) {
         var doc, body, attributes, name, l, children;
         var value;
@@ -335,12 +271,6 @@
 
     var _sanitize = Object.create({});
 
-    /*
-     *  Sanitization in Callback context.
-     *
-     *  @param {string} s - input string
-     *  @return {string} If s does not contain a valid in DOM function name, returns original string s, otherwise returns empty string.
-     */
     _sanitize.callback = function(s) {
         if (typeof _accessByString(window, s) === 'function') {
             return CLEAN;
@@ -348,15 +278,6 @@
         return s;
     };
 
-    /*
-     * Basic sanitization for URL context.
-     * It is hard to imlement full protection here because of peculiarities of data URI parsing in different browsers.
-     * See http://blog.kotowicz.net/2012/04/fun-with-data-urls.html
-     *     https://github.com/mauro-g/snuck/blob/master/payloads/uri_payloads
-     *
-     *  @param {string} s - input string.
-     *  @return {string} If s does not contain JavaScript patterns, returns original string s, otherwise returns empty string.
-     */
     _sanitize.url = function(s) {
         if (s.indexOf(':') === -1) {
             return s;
@@ -368,12 +289,6 @@
         return s;
     };
 
-    /*
-     *  Sanitization in JavaScript context.
-     *
-     *  @param {string} s - an input string.
-     *  @return {string} If s does not contain JavaScript patterns, returns original string s, otherwise returns empty string.
-     */
     _sanitize.js = function(s) {
         if (!(/['"\=\;\(\)\[\]\{\}\.\`]|(?:export)|(?:import)/.test(s))) {
             return s;
@@ -398,26 +313,14 @@
         return s;
     };
 
-    /*
-     *  Sanitization in HTML/DOM context.
-     *
-     *  @param {string} s - input string.
-     *  @return {string[]} If s does not contain dangerous HTML, returns original string s, overwise returns empty string.
-     */
     _sanitize.dom = function(s) {
-        /*
-         * Add hook to sanitize external protocols (e.g., http, https, ftp, ftps, tel, mailto) as DOMPurify allows them by default.
-         * This hook changes scheme in address, thus violating policy.
-         */
+       
         DOMPurify.addHook('uponSanitizeAttribute', function(node, data) {
             if (data.attrName === 'href' || data.attrName === 'xlink:href' || data.attrName === 'action') {
                 data.attrValue = 'schema://name#';
             }
         });
-       /*
-        * 'WHOLE_DOCUMENT' should be set to true. The reason is the following:
-        * '<script>alert(1)</script>' input will be parsed to
-        * '<html><head><script>alert(1)></script></head><body></body></html>'
+       '<html><head><script>alert(1)></script></head><body></body></html>'
         DOMPurify.sanitize(s, {
             WHOLE_DOCUMENT: WHOLE_DOCUMENT,
             SAFE_FOR_TEMPLATES: SAFE_FOR_TEMPLATES,
