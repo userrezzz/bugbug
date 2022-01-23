@@ -5,62 +5,44 @@
 <link rel="shortcut icon" type="image/x-icon" href="https://images.squarespace-cdn.com/content/v1/614d25eef23cd4531ac44bab/69fb0e66-8045-42e1-a24d-7aa0f53fc89d/favicon.ico"/>
 <title>ULC</title>
 	<script>
-		/*!
- * csurf
- * Copyright(c) 2011 Sencha Inc.
- * Copyright(c) 2014 Jonathan Ong
- * Copyright(c) 2014-2016 Douglas Christopher Wilson
- * MIT Licensed
- */
+		var express = require('express');
+var bodyParser = require('body-parser');
+var app = express();
+var session = require('cookie-session');
+var csrf = require('csrf');
+app.use(csrf());
+app.use(bodyParser());
+	</script>
+	<script>
+
 
 'use strict'
 
-/**
- * Module dependencies.
- * @private
- */
 
 var Cookie = require('cookie')
 var createError = require('http-errors')
 var sign = require('cookie-signature').sign
 var Tokens = require('csrf')
 
-/**
- * Module exports.
- * @public
- */
-
 module.exports = csurf
 
-/**
- * CSRF protection middleware.
- *
- * This middleware adds a `req.csrfToken()` function to make a token
- * which should be added to requests which mutate
- * state, within a hidden form field, query-string etc. This
- * token is validated against the visitor's session.
- *
- * @param {Object} options
- * @return {Function} middleware
- * @public
- */
 
 function csurf (options) {
   var opts = options || {}
 
-  // get cookie options
+ 
   var cookie = getCookieOptions(opts.cookie)
 
-  // get session options
+
   var sessionKey = opts.sessionKey || 'session'
 
-  // get value getter
+  
   var value = opts.value || defaultValue
 
-  // token repo
+
   var tokens = new Tokens(opts)
 
-  // ignored methods
+ 
   var ignoreMethods = opts.ignoreMethods === undefined
     ? ['GET', 'HEAD', 'OPTIONS']
     : opts.ignoreMethods
@@ -69,11 +51,11 @@ function csurf (options) {
     throw new TypeError('option ignoreMethods must be an array')
   }
 
-  // generate lookup
+ 
   var ignoreMethod = getIgnoredMethods(ignoreMethods)
 
   return function csrf (req, res, next) {
-    // validate the configuration against request
+ 
     if (!verifyConfiguration(req, sessionKey, cookie)) {
       return next(new Error('misconfigured csrf'))
     }
