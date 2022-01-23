@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -253,9 +252,8 @@ app.use(function (req, res, next) {
                 'foo- ', 
                 'foo- ',
                 ' ><script>alert(1)</script>',
-                '---------- ><script>alert(1)</script>',
-                '--\uFFFD>']);
-        });
+                '---------- ><script>alert(1)</script>'
+	          '--\uFFFD>']); });
 
         it('filter yav-single-quoted state transition test', function() {
             testutils.test_yav(filter.yavs, [
