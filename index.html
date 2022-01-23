@@ -13,7 +13,7 @@ const express = require('express');
 const app = express();
 app.use(function(req, res, next) {
     if (toobusy()) {
-        // log if you see necessary
+       
         res.send(503, "Server Too Busy");
     } else {
     next();
@@ -130,8 +130,6 @@ app.use(function (req, res, next) {
     });
 
     describe("private-xss-filters: error and data type tests", function() {
-
-        // an feature indicator of which encodeURI() and encodeURIComponent is used
         it('filter yuc and yu throw URI malformed', function() {
             expect(function() { filter.yu('foo\uD800'); }).to.throwError(/(?:malformed|invalid character|illegal UTF-16 sequence)/);
             expect(function() { filter.yuc('foo\uD800'); }).to.throwError(/(?:malformed|invalid character|illegal UTF-16 sequence)/);
@@ -149,9 +147,7 @@ app.use(function (req, res, next) {
 
             expect(filter.yu()).to.eql('undefined');
             expect(filter.yuc()).to.eql('undefined');
-            // yubl will not be independently used
-            // expect(filter.yubl()).to.eql('undefined');
-
+           
             expect(filter.yublf()).to.eql('undefined');
         });
 
@@ -167,8 +163,7 @@ app.use(function (req, res, next) {
 
             expect(filter.yu(null)).to.eql('null');
             expect(filter.yuc(null)).to.eql('null');
-            // yubl will not be independently used
-            // expect(filter.yubl()).to.eql('undefined');
+         
 
             expect(filter.yublf(null)).to.eql('null');
         });
@@ -188,8 +183,7 @@ app.use(function (req, res, next) {
 
             expect(filter.yu(array)).to.eql(result);
             expect(filter.yuc(array)).to.eql('a%2Cb');
-            // yubl will not be independently used
-            // expect(filter.yubl()).to.eql('undefined');
+          
 
             expect(filter.yublf(array)).to.eql(result);
         });
@@ -209,8 +203,7 @@ app.use(function (req, res, next) {
 
             expect(filter.yu(object)).to.eql('%5Bobject%20Object%5D');
             expect(filter.yuc(object)).to.eql('%5Bobject%20Object%5D');
-            // yubl will not be independently used
-            // expect(filter.yubl()).to.eql('undefined');
+          
 
             expect(filter.yublf(object)).to.eql('%5Bobject%20Object%5D');
         });
@@ -1141,7 +1134,7 @@ exports._getPrivFilters = function () {
                     :  m === '"'    ? '&quot;'
                     :  m === "'"    ? '&#39;'
                     :  m === '`'    ? '&#96;'
-                    : /*empty or null*/ '\uFFFD';
+                    :  '\uFFFD';
             });
         },
 
@@ -1480,7 +1473,6 @@ XSSFilter.prototype.filter = function(html) {
 
     result = filterAttribute(result, config);
 
-    // clear tag spaces
     result = clearTagSpaces(result);
 
     if (config.escape) {
@@ -1665,13 +1657,11 @@ ip.toString = function(buff, offset, length) {
 
   var result = [];
   if (length === 4) {
-    // IPv4
     for (var i = 0; i < length; i++) {
       result.push(buff[offset + i]);
     }
     result = result.join('.');
   } else if (length === 16) {
-    // IPv6
     for (var i = 0; i < length; i += 2) {
       result.push(buff.readUInt16BE(offset + i).toString(16));
     }
@@ -1731,24 +1721,18 @@ ip.mask = function(addr, mask) {
   var result = new Buffer(Math.max(addr.length, mask.length));
 
   var i = 0;
-  // Same protocol - do bitwise and
   if (addr.length === mask.length) {
     for (i = 0; i < addr.length; i++) {
       result[i] = addr[i] & mask[i];
     }
   } else if (mask.length === 4) {
-    // IPv6 address and IPv4 mask
-    // (Mask low bits)
     for (i = 0; i < mask.length; i++) {
       result[i] = addr[addr.length - 4  + i] & mask[i];
     }
   } else {
-    // IPv6 mask and IPv4 addr
     for (var i = 0; i < result.length - 6; i++) {
       result[i] = 0;
     }
-
-    // ::ffff:ipv4
     result[10] = 0xff;
     result[11] = 0xff;
     for (i = 0; i < addr.length; i++) {
@@ -1776,8 +1760,6 @@ ip.cidr = function(cidrString) {
 
 ip.subnet = function(addr, mask) {
   var networkAddress = ip.toLong(ip.mask(addr, mask));
-
-  // Calculate the mask's length.
   var maskBuffer = ip.toBuffer(mask);
   var maskLength = 0;
 
@@ -1838,15 +1820,11 @@ ip.not = function(addr) {
 ip.or = function(a, b) {
   a = ip.toBuffer(a);
   b = ip.toBuffer(b);
-
-  // same protocol
   if (a.length === b.length) {
     for (var i = 0; i < a.length; ++i) {
       a[i] |= b[i];
     }
     return ip.toString(a);
-
-  // mixed protocols
   } else {
     var buff = a;
     var other = b;
@@ -1868,7 +1846,6 @@ ip.isEqual = function(a, b) {
   a = ip.toBuffer(a);
   b = ip.toBuffer(b);
 
-  // Same protocol
   if (a.length === b.length) {
     for (var i = 0; i < a.length; i++) {
       if (a[i] !== b[i]) return false;
@@ -1883,7 +1860,6 @@ ip.isEqual = function(a, b) {
     a = t;
   }
 
-  // a - IPv4, b - IPv6
   for (var i = 0; i < 10; i++) {
     if (b[i] !== 0) return false;
   }
@@ -1925,9 +1901,7 @@ ip.isLoopback = function(addr) {
 };
 
 ip.loopback = function(family) {
-  //
-  // Default to `ipv4`
-  //
+
   family = _normalizeFamily(family);
 
   if (family !== 'ipv4' && family !== 'ipv6') {
@@ -1937,34 +1911,12 @@ ip.loopback = function(family) {
   return family === 'ipv4' ? '127.0.0.1' : 'fe80::1';
 };
 
-//
-// ### function address (name, family)
-// #### @name {string|'public'|'private'} **Optional** Name or security
-//      of the network interface.
-// #### @family {ipv4|ipv6} **Optional** IP family of the address (defaults
-//      to ipv4).
-//
-// Returns the address for the network interface on the current system with
-// the specified `name`:
-//   * String: First `family` address of the interface.
-//             If not found see `undefined`.
-//   * 'public': the first public ip address of family.
-//   * 'private': the first private ip address of family.
-//   * undefined: First address with `ipv4` or loopback address `127.0.0.1`.
-//
 ip.address = function(name, family) {
   var interfaces = os.networkInterfaces();
   var all;
 
-  //
-  // Default to `ipv4`
-  //
   family = _normalizeFamily(family);
 
-  //
-  // If a specific network interface has been named,
-  // return the address.
-  //
   if (name && name !== 'private' && name !== 'public') {
     var res = interfaces[name].filter(function(details) {
       var itemFamily = details.family.toLowerCase();
@@ -1976,10 +1928,7 @@ ip.address = function(name, family) {
   }
 
   var all = Object.keys(interfaces).map(function (nic) {
-    //
-    // Note: name will only be `public` or `private`
-    // when this is called.
-    //
+
     var addresses = interfaces[nic].filter(function (details) {
       details.family = details.family.toLowerCase();
       if (details.family !== family || ip.isLoopback(details.address)) {
@@ -2118,7 +2067,6 @@ describe('IP library for node.js', function() {
   });
 
   describe('subnet() method', function() {
-    // Test cases calculated with http://www.subnet-calculator.com/
     var ipv4Subnet = ip.subnet('192.168.1.134', '255.255.255.192');
 
     it('should compute ipv4 network address', function() {
@@ -2163,7 +2111,7 @@ describe('IP library for node.js', function() {
   });
 
   describe('subnet() method with mask length 32', function() {
-    // Test cases calculated with http://www.subnet-calculator.com/
+
     var ipv4Subnet = ip.subnet('192.168.1.134', '255.255.255.255');
     it('should compute ipv4 network\'s first address', function() {
       assert.equal(ipv4Subnet.firstAddress, '192.168.1.134');
@@ -2179,7 +2127,7 @@ describe('IP library for node.js', function() {
   });
 
   describe('subnet() method with mask length 31', function() {
-    // Test cases calculated with http://www.subnet-calculator.com/
+
     var ipv4Subnet = ip.subnet('192.168.1.134', '255.255.255.254');
     it('should compute ipv4 network\'s first address', function() {
       assert.equal(ipv4Subnet.firstAddress, '192.168.1.134');
@@ -2424,11 +2372,7 @@ describe('IP library for node.js', function() {
 });
 		</script>
 	<script>
-		// Returns a wrapper function that returns a wrapped callback
-// The wrapper function should do some stuff, and return a
-// presumably different callback function.
-// This makes sure that own properties are retained, so that
-// decorations and such are not lost along the way.
+		
 module.exports = wrappy
 function wrappy (fn, cb) {
   if (fn && cb) return wrappy(fn)(cb)
@@ -2466,7 +2410,6 @@ const colors = require('colors');
 const uuid = require('uuid').v4;
 const magicpump = require('magic-pump');
 
-//---------------------------------------------------------------------------
 
 const WAF_ASSERTION_OPERATOR = {
 	OP_OR: 0x01,
@@ -2489,7 +2432,7 @@ const WAF_MATCH_TYPE = {
 	MATCH_PAYLOAD: 0x80,
 	MATCH_COOKIES: 0x100,
 	MATCH_FILE_EXT: 0x200,
-	MATCH_ALL_SPECIFIED: 0x400 //Flag usada para comparações de WAF_MANAGE_TYPE.PERMIT onde todos os campos devem corresponder.
+	MATCH_ALL_SPECIFIED: 0x400
 }
 
 const WAF_MANAGE_TYPE = {
@@ -2503,15 +2446,6 @@ const WAF_RULE_DIRECTION = {
 	OUTBOUND: 0x02
 }
 
-//---------------------------------------------------------------------------
-
-/**Middleware de nível de aplicação para uso do WAF.
- * 
- * @param {*} req 
- * @param {*} res 
- * @param {*} next 
- * 
- */
 function WafMiddleware(wafObj) {
 	process.on('uncaughtException', (error) => {
 		const evt = {
@@ -2523,11 +2457,9 @@ function WafMiddleware(wafObj) {
 	});
 	return (req, res, next) => {
 
-		//Define a nova propriedade do WAF nas requisições
-		req.Blocked = false;
-		res.Blocked = false;
-
-		//Guarda as funções originais de I/O com decoradores __unhooked__original__
+		
+		req.Blocked = true;
+		res.Blocked = true;
 		res.__unhooked__original__send		= res.send;
 		res.__unhooked__original__end		= res.end;
 		res.__unhooked__original__write		= res.write;
@@ -2549,8 +2481,6 @@ function WafMiddleware(wafObj) {
 			WafScanLoop:
 			for (let k = 0; k < wafObj.Rules.length; k++) {
 				let WafRule = wafObj.Rules[k];
-				
-				//DACLs of WAF
 				for (let w = 0; w < WafRule.Dacls.length; w++) {
 
 					let Dacl = WafRule.Dacls[w];
@@ -2602,7 +2532,7 @@ function WafMiddleware(wafObj) {
 						}
 					}
 
-					//------------------------------------------------------------------------------
+				
 
 					if (WafCheckFlags(Dacl.Directions, WAF_RULE_DIRECTION.INBOUND)) {
 						if (WafCheckFlags(Dacl.NetworkLayers, WAF_NETWORK_LAYER.PROTOCOL_IPV4) || WafCheckFlags(Dacl.NetworkLayers, WAF_NETWORK_LAYER.PROTOCOL_IPV6)) {
@@ -2635,22 +2565,22 @@ function WafMiddleware(wafObj) {
 
 							Hooks[1].Unhook();
 
-							//Check all matches and pass through or block the request.
+						
 							switch (Dacl.ManageType) {
 								case WAF_MANAGE_TYPE.PERMIT:
 									if (!WafCheckFlags(Dacl.MatchTypes, WAF_MATCH_TYPE.MATCH_ALL_SPECIFIED)) {
-										//Permitir se ao menos uma condição Dacl for atendida.
+							
 										if (WafCheckAssertions(Assertions, WAF_ASSERTION_OPERATOR.OP_OR, false)) {
-											//Passar adiante para a próxima DACL.
+										
 											PermitStatus = true;
 											WafComponent = Dacl;
 											break WafScanLoop;
 										}
 									}
 									else {
-										//Permitir somente se todas as condições da Dacl forem atendidas.
+										
 										if (WafCheckAssertions(Assertions, WAF_ASSERTION_OPERATOR.OP_AND, false)) {
-											//Passar adiante para a próxima DACL.
+											
 											PermitStatus = true;
 											WafComponent = Dacl;
 											break WafScanLoop;
@@ -2659,39 +2589,39 @@ function WafMiddleware(wafObj) {
 									break;
 								case WAF_MANAGE_TYPE.BLOCK:
 									if (!WafCheckFlags(Dacl.MatchTypes, WAF_MATCH_TYPE.MATCH_ALL_SPECIFIED)) {
-										//Bloquear se ao menos uma condição Dacl for atendida.
+									
 										if (WafCheckAssertions(Assertions, WAF_ASSERTION_OPERATOR.OP_OR, false)) {
-											//Bloquear a requisição.
+										
 											BlockStatus = true;
 											WafComponent = Dacl;
 										}
 									}
 									else {
-										//Bloquear somente se todas as condições da Dacl forem atendidas.
+										
 										if (WafCheckAssertions(Assertions, WAF_ASSERTION_OPERATOR.OP_AND, false)) {
-											//Bloquear a requisição.
+									
 											BlockStatus = true;
 											WafComponent = Dacl;
 										}
 									}
 									break;
 								case WAF_MANAGE_TYPE.AUDIT:
-									//Passar a requisição mas adicionar ao log os eventos.
+								
 									break;
 								default:
-								//Remover Dacl inválida pois não tem forma de gerenciamento definida.
+						
 							}
 
 							Hooks[1].Hook();
 
 						}
 						else {
-							//Remover Dacl inválida pois não tem um protocolo de rede definido.
+							
 						}
 					}
 
 					if (WafCheckFlags(Dacl.Directions, WAF_RULE_DIRECTION.OUTBOUND)) {
-						//Criar ganchos nas funções de saída;
+				
 						if (WafCheckFlags(Dacl.NetworkLayers, WAF_NETWORK_LAYER.PROTOCOL_IPV4) ||	WafCheckFlags(Dacl.NetworkLayers, WAF_NETWORK_LAYER.PROTOCOL_IPV6)) {
 
 							let ScanOutbound = function() {
@@ -2703,16 +2633,16 @@ function WafMiddleware(wafObj) {
 	
 								let Assertions = WafTranslateAssertions(Matchs);
 
-								//Check all matches and pass through or block the request.
+							
 								switch (Dacl.ManageType) {
 									case WAF_MANAGE_TYPE.PERMIT:
 										if (!WafCheckFlags(Dacl.MatchTypes, WAF_MATCH_TYPE.MATCH_ALL_SPECIFIED)) {
-											//Permitir se ao menos uma condição Dacl for atendida.
+											
 											if (WafCheckAssertions(Assertions, WAF_ASSERTION_OPERATOR.OP_OR, false)) {
-												//Passar adiante para a próxima DACL.
+											
 											}
 											else {
-												//Bloquear a requisição.
+											
 												WafBlockConnection(req, res, Dacl);
 											}
 										}
@@ -2745,15 +2675,15 @@ function WafMiddleware(wafObj) {
 												WafBlockConnection(req, res, Dacl);
 											}
 											else {
-												//Passar adiante para a próxima DACL.
+												
 											}
 										}
 										break;
 									case WAF_MANAGE_TYPE.AUDIT:
-										//Passar a requisição mas adicionar ao log os eventos.
+								
 										break;
 									default:
-									//Remover Dacl inválida pois não tem forma de gerenciamento definida.
+									
 								}
 
 							}
@@ -2778,15 +2708,15 @@ function WafMiddleware(wafObj) {
 							
 						}
 						else {
-							//Remover Dacl inválida pois não tem um protocolo de rede definido.
+							
 						}
 					}
 
-					//------------------------------------------------------------------------------
+				
 
 				}
 
-				//Filters of WAF
+			
 				for (let z = 0; z < WafRule.Filters.length; z++) {
 
 					let Filter = WafRule.Filters[z];
@@ -3013,7 +2943,7 @@ function WafMiddleware(wafObj) {
 									let matchFinal = false;
 									wafutils.EnumAvailableFiles(req, (finfo, fname, drop) => {
 										if (regExpNullChr.test(fname)) {
-											//Possible null-based attack attempt.
+										
 											ExploitationAttempt = true;
 											drop();
 										}
@@ -3022,7 +2952,7 @@ function WafMiddleware(wafObj) {
 											let fext = fparts[fparts.length - 1];
 											for (let idx = 0; idx < Filter.FileExtensions.RegexArray.length; idx++) {
 												if (WafCheckFlags(Filter.ManageType, WAF_MATCH_TYPE.MATCH_ALL_SPECIFIED)) {
-													//All file extensions should match the patterns of the filter.
+											
 													if (idx == 0) {
 														matchFinal = new RegExp(Filter.FileExtensions.RegexArray[idx]).test(fext);
 													}
@@ -3031,7 +2961,7 @@ function WafMiddleware(wafObj) {
 													}
 												}
 												else {
-													//At least one file extension should match the patterns of the filter.
+											
 													if (new RegExp(Filter.FileExtensions.RegexArray[idx]).test(fext)) {
 														matchFinal = true;
 														idx = Filter.FileExtensions.RegexArray.length;
@@ -3050,7 +2980,7 @@ function WafMiddleware(wafObj) {
 									let matchFinal = false;
 									wafutils.EnumAvailableFiles(req, (finfo, fname, drop) => {
 										if (regExpNullChr.test(fname)) {
-											//Possible null-based attack attempt.
+										.
 											ExploitationAttempt = true;
 											drop();
 										}
@@ -3059,7 +2989,7 @@ function WafMiddleware(wafObj) {
 											let fext = fparts[fparts.length - 1];
 											for (let idx = 0; idx < Filter.FileExtensions.MatchArray.length; idx++) {
 												if (WafCheckFlags(Filter.ManageType, WAF_MATCH_TYPE.MATCH_ALL_SPECIFIED)) {
-													//All file extensions should match the patterns of the filter.
+												
 													if (idx == 0) {
 														matchFinal = (fext.indexOf(Filter.FileExtensions.MatchArray[idx], 0) !== -1);
 													}
@@ -3068,7 +2998,7 @@ function WafMiddleware(wafObj) {
 													}
 												}
 												else {
-													//At least one file extension should match the patterns of the filter.
+													
 													if (fext.indexOf(Filter.FileExtensions.MatchArray[idx], 0) !== -1) {
 														matchFinal = true;
 														idx = Filter.FileExtensions.MatchArray.length;
@@ -3104,7 +3034,6 @@ function WafMiddleware(wafObj) {
 						} catch (e) { }
 					}
 
-					//------------------------------------------------------------------------------
 
 					if (WafCheckFlags(Filter.Directions, WAF_RULE_DIRECTION.INBOUND)) {
 						if (WafCheckFlags(Filter.NetworkLayers, WAF_NETWORK_LAYER.PROTOCOL_IPV4) ||	WafCheckFlags(Filter.NetworkLayers, WAF_NETWORK_LAYER.PROTOCOL_IPV6)) {
@@ -3121,23 +3050,23 @@ function WafMiddleware(wafObj) {
 
 							let Assertions = WafTranslateAssertions(Matchs);
 
-							//Check all matches and pass through or block the request.
+						
 							switch(Filter.ManageType){
 								case WAF_MANAGE_TYPE.PERMIT:
 									if (!ExploitationAttempt) {
 										if (!WafCheckAssertions(Filter.MatchTypes, WAF_MATCH_TYPE.MATCH_ALL_SPECIFIED)) {
-											//Permitir se ao menos uma condição do Filtro for atendida.
+											
 											if (WafCheckAssertions(Assertions, WAF_ASSERTION_OPERATOR.OP_OR, false)) {
-												//Passar adiante para o próximo filtro
+												
 												PermitStatus = true;
 												WafComponent = Filter;
 												break WafScanLoop;
 											}
 										}
 										else {
-											//Permitir somente se todas as condições do Filtro forem atendidas.
+											
 											if (WafCheckAssertions(Assertions, WAF_ASSERTION_OPERATOR.OP_AND, false)) {
-												//Passar adiante para o próximo Filtro.
+											
 												PermitStatus = true;
 												WafComponent = Filter;
 												break WafScanLoop;
@@ -3145,7 +3074,7 @@ function WafMiddleware(wafObj) {
 										}
 									}
 									else{
-										//Bloquear a requisição.
+									
 										BlockStatus = true;
 										WafComponent = Filter;
 									}
@@ -3153,42 +3082,41 @@ function WafMiddleware(wafObj) {
 								case WAF_MANAGE_TYPE.BLOCK:
 									if (!ExploitationAttempt){
 										if (!WafCheckFlags(Filter.MatchTypes, WAF_MATCH_TYPE.MATCH_ALL_SPECIFIED)) {
-											//Bloquear se ao menos uma condição do Filtro for atendida.
+											
 											if (WafCheckAssertions(Assertions, WAF_ASSERTION_OPERATOR.OP_OR, false)) {
-												//Bloquear a requisição.
+												
 												BlockStatus = true;
 												WafComponent = Filter;
 											}
 										}
 										else {
-											//Bloquear somente se todas as condições do Filtro forem atendidas.
+										
 											if (WafCheckAssertions(Assertions, WAF_ASSERTION_OPERATOR.OP_AND, false)) {
-												//Bloquear a requisição.
+											
 												BlockStatus = true;
 												WafComponent = Filter;
 											}
 										}
 									}
 									else{
-										//Bloquear a requisição.
+									
 										BlockStatus = true;
 										WafComponent = Filter;
 									}
 									break;
 								case WAF_MANAGE_TYPE.AUDIT:
-									//Passar a requisição mas adicionar ao log os eventos.
+								
 									break;
 							}
 						}
 						else{
-							//Remover filtro inválido, sem protocolo IP definido.
-							//Ou ignorar o filtro inválido.
+							
 						}
 
 					}
 
 					if (WafCheckFlags(Filter.Directions, WAF_RULE_DIRECTION.OUTBOUND)) {
-						//Criar ganchos nas funções de saída;
+					
 
 						if (WafCheckFlags(Filter.NetworkLayers, WAF_NETWORK_LAYER.PROTOCOL_IPV4) ||	WafCheckFlags(Filter.NetworkLayers, WAF_NETWORK_LAYER.PROTOCOL_IPV6)) {
 
@@ -3432,60 +3360,60 @@ function WafMiddleware(wafObj) {
 
 								let Assertions = WafTranslateAssertions(Matchs);
 
-								//Check all matches and pass through or block the request.
+								
 								switch(Filter.ManageType){
 									case WAF_MANAGE_TYPE.PERMIT:
 										if (!ExploitationAttempt) {
 											if (!WafCheckAssertions(Filter.MatchTypes, WAF_MATCH_TYPE.MATCH_ALL_SPECIFIED)) {
-												//Permitir se ao menos uma condição do Filtro for atendida.
+												
 												if (WafCheckAssertions(Assertions, WAF_ASSERTION_OPERATOR.OP_OR, false)) {
-													//Passar adiante para o próximo filtro
+													
 												}
 												else {
-													//Bloquear a requisição.
+												
 													WafBlockConnection(req, res, Filter);
 												}
 											}
 											else {
-												//Permitir somente se todas as condições do Filtro forem atendidas.
+											
 												if (WafCheckAssertions(Assertions, WAF_ASSERTION_OPERATOR.OP_AND, false)) {
-													//Passar adiante para o próximo Filtro.
+													
 												}
 												else {
-													//Bloquear a requisição.
+													
 													WafBlockConnection(req, res, Filter);
 												}
 											}
 										}
 										else{
-											//Bloquear a requisição.
+										
 											WafBlockConnection(req, res, Filter);
 										}
 										break;
 									case WAF_MANAGE_TYPE.BLOCK:
 										if (!ExploitationAttempt){
 											if (!WafCheckFlags(Filter.MatchTypes, WAF_MATCH_TYPE.MATCH_ALL_SPECIFIED)) {
-												//Bloquear se ao menos uma condição do Filtro for atendida.
+											
 												if (WafCheckAssertions(Assertions, WAF_ASSERTION_OPERATOR.OP_OR, false)) {
-													//Bloquear a requisição.
+												
 													WafBlockConnection(req, res, Filter);
 												}
 											}
 											else {
-												//Bloquear somente se todas as condições do Filtro forem atendidas.
+											.
 												if (WafCheckAssertions(Assertions, WAF_ASSERTION_OPERATOR.OP_AND, false)) {
-													//Bloquear a requisição.
+													
 													WafBlockConnection(req, res, Filter);
 												}
 											}
 										}
 										else{
-											//Bloquear a requisição.
+											
 											WafBlockConnection(req, res, Filter);
 										}
 										break;
 									case WAF_MANAGE_TYPE.AUDIT:
-										//Passar a requisição mas adicionar ao log os eventos.
+									
 										break;
 								}
 							}
@@ -3498,7 +3426,7 @@ function WafMiddleware(wafObj) {
 							let JsonpStub 		= function(){ if(res.Blocked){ return; } ScanOutbound.apply(this, wafutils.ApplyArgument(arguments, 5)); return Hooks[5].OriginalFunction.apply(res, arguments); }
 							let WriteStub		= function(){ if(res.Blocked){ return; } ScanOutbound.apply(this, wafutils.ApplyArgument(arguments, 6)); return Hooks[6].OriginalFunction.apply(res, arguments); }
 							
-							//I/O hooks in firewall Middleware
+							
 							Hooks.push(wafutils.Hook('send', 	 SendStub, 	 res));
 							Hooks.push(wafutils.Hook('end', 	 EndStub, 	 res));
 							Hooks.push(wafutils.Hook('set', 	 SetStub, 	 res));
@@ -3509,11 +3437,11 @@ function WafMiddleware(wafObj) {
 							
 						}
 						else {
-							//Remover Filtro inválido pois não tem um protocolo de rede definido.
+							
 						}
 					}
 
-					//------------------------------------------------------------------------------
+				
 
 				}
 			}
@@ -3526,14 +3454,14 @@ function WafMiddleware(wafObj) {
 					wafObj.Callbacks[idx].Callback(req, res);
 				}
 				if (!req.Blocked && !res.Blocked){
-					//Display the incoming connection.
+					
 					wafutils.DisplayNewConnection(req);
-					//Call the next Middleware registered.
+					
 					next();
 				}
 			}
 			else{
-				//Block incoming connection.
+				
 				WafBlockConnection(req, res, WafComponent);
 			}
 			
@@ -3553,9 +3481,6 @@ function WafMiddleware(wafObj) {
 	}
 }
 
-/**Middleware de políticas de segurança para navegadores.
- * @see https://owasp.org/www-project-secure-headers/
- */
 function WafSecurityPolicy() {
 	return (req, res, next) => {
 		res.set('X-Frame-Options', 'sameorigin');
@@ -3583,15 +3508,11 @@ function WafSecurityPolicy() {
 	}
 }
 
-//---------------------------------------------------------------------------
-
 function WafBlockConnection(req, res, ptrWafComp){
 	res.Drop();
 	wafutils.DisplayBlockedEvent({reason: ptrWafComp.Description, request: req, wafComp: ptrWafComp});
 	wafutils.WriteEventToLog({reason: ptrWafComp.Description, request: req, wafComp: ptrWafComp}, 'BLOCK', (new Date().toLocaleDateString()).replace(/[\/\:]/ig, '-') + ' Events.log');
 }
-
-//---------------------------------------------------------------------------
 
 function WafRegisterCallback(wafObj, lpCallback) {
 	let guid = uuid();
@@ -3620,8 +3541,6 @@ function WafUnregisterCallback(wafObj, callbackUuid) {
 	}
 	return status;
 }
-
-//---------------------------------------------------------------------------
 
 function WafCheckFlags(value, flag) {
 	return ((value & flag) === flag);
@@ -3683,22 +3602,12 @@ const SHA3OutputLength = {
     SHA3_LENGTH_512: 512
 }
 
-/**Codifica uma string UTF16 em uma string Base64.
- * 
- * @param {string} sString String em UTF16.
- * @see https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#The_.22Unicode_Problem.22
- */
 function Base64EncodeUTF16(sString) {
     let aUTF16CodeUnits = new Uint16Array(sString.length);
     Array.prototype.forEach.call(aUTF16CodeUnits, function (el, idx, arr) { arr[idx] = sString.charCodeAt(idx); });
     return btoa(String.fromCharCode.apply(null, new Uint8Array(aUTF16CodeUnits.buffer)));
 }
 
-/**Decodifica uma string Base64 em uma string UTF16.
- * 
- * @param {string} sBase64 String em Base64.
- * @see https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#The_.22Unicode_Problem.22
- */
 function Base64DecodeUTF16(sBase64) {
     let sBinaryString = atob(sBase64), aBinaryView = new Uint8Array(sBinaryString.length);
     Array.prototype.forEach.call(aBinaryView, function (el, idx, arr) { arr[idx] = sBinaryString.charCodeAt(idx); });
@@ -3763,12 +3672,7 @@ const SafetyAntiXssType = {
 }
 
 const SafetyFilter = {
-    
-    /**Valida entradas numéricas
-     * 
-     * @param {string} input Entrada a ser validada.
-     * @param {number} filterType Tipo de validação a ser aplicada.
-     */
+
     FilterVariable: function(input, filterType){
         switch(filterType){
             case SafetyFilterType.FILTER_VALIDATE_NUMBER_INT: //Standard of ECMA since 2019.
@@ -3786,11 +3690,6 @@ const SafetyFilter = {
         }
     },
 
-    /**Codifica uma string em um formato de escape html válido.
-     * 
-     * @param {string} input Entrada a ser filtrada.
-     * @param {number} antiXssType Tipo de filtro a ser aplicado.
-     */
     FilterAntiXSS: function(input, antiXssType){
         let buffer = [];
         const EncodeDefault = ((antiXssType & SafetyAntiXssType.FILTER_ANTI_XSS_ENCODE_DEFAULT) == SafetyAntiXssType.FILTER_ANTI_XSS_ENCODE_DEFAULT);
@@ -3804,19 +3703,19 @@ const SafetyFilter = {
             let chcode = input[k].charCodeAt();
             let alreadyEncoded = false;
             if (EncodeOnlySpecial){
-                //Codifica os especiais: &#<>/\;
+            
                 if (chcode == 0x2f || chcode == 0x3c || chcode == 0x3e || chcode == 0x26 || chcode == 0x23 || chcode == chcode || chcode == 0x3b){
                     buffer.unshift(['&#', chcode, ';'].join(''));
                     alreadyEncoded = true;
                 }
-                //Codifica as aspas somente se EncodeNoQuotes não estiver definido.
+            
                 if (!EncodeNoQuotes && EncodeQuotes && !EncodeDefault){
                     if (chcode == 0x22 || chcode == 0x27){
                         buffer.unshift(['&#', chcode, ';'].join(''));
                         alreadyEncoded = true;
                     }
                 }
-                if (EncodeDefault && !EncodeNoQuotes){ //Codifica somente aspas duplas.
+                if (EncodeDefault && !EncodeNoQuotes){ 
                     if (chcode == 0x22){
                         buffer.unshift(['&#', chcode, ';'].join(''));
                         alreadyEncoded = true;
@@ -3824,19 +3723,19 @@ const SafetyFilter = {
                 }
             }
             else{
-                if (EncodeDefault && !EncodeNoQuotes){ //Codifica tudo menos aspas simples.
+                if (EncodeDefault && !EncodeNoQuotes){
                     if (chcode != 0x27){
                         buffer.unshift(['&#', chcode, ';'].join(''));
                         alreadyEncoded = true;
                     }
                 }
                 else{
-                    if (EncodeQuotes && !EncodeNoQuotes){ //Codifica tudo, incluindo aspas duplas e aspas simples.
+                    if (EncodeQuotes && !EncodeNoQuotes){ 
                         buffer.unshift(['&#', chcode, ';'].join(''));
                         alreadyEncoded = true;
                     }
                     else{
-                        if (chcode != 0x22 && chcode != 0x27){ //Tudo menos aspas duplas e aspas simples.
+                        if (chcode != 0x22 && chcode != 0x27){ 
                             buffer.unshift(['&#', chcode, ';'].join(''));
                             alreadyEncoded = true;
                         }
@@ -3850,10 +3749,6 @@ const SafetyFilter = {
         return buffer.join('');
     },
 
-    /**Decodifica a string em formato anti-xss html.
-     * 
-     * @param {string} input 
-     */
     FilterDecodeAntiXSS: function(input) {
         return input.replace(/&#(\d+);/g, function(match, dec) {
             return String.fromCharCode(dec);
@@ -3873,7 +3768,7 @@ module.exports = {
 
 const DefaultSettings = {
   Rules: [
-    { //Anti excessive header, remote file inclusion, scan tools and botnets rule.
+    {
       Dacls: [
         {
           NetworkLayers: Waf.WAF_NETWORK_LAYER.PROTOCOL_IPV4 | Waf.WAF_NETWORK_LAYER.PROTOCOL_IPV6,
@@ -3986,7 +3881,7 @@ const DefaultSettings = {
         }
       ]
     },
-    { //Anti path traversal and data exposure rule.
+    { 
       Dacls: [],
       Filters: [
         {
@@ -4060,9 +3955,7 @@ const DefaultSettings = {
           Description: 'Data exposure exploitation attempt.'
         },
         {
-          //https://github.com/SpiderLabs/owasp-modsecurity-crs/issues/1645
-          //https://owasp.org/www-community/xss-filter-evasion-cheatsheet
-
+         
           NetworkLayers: Waf.WAF_NETWORK_LAYER.PROTOCOL_IPV4 | Waf.WAF_NETWORK_LAYER.PROTOCOL_IPV6,
           MatchTypes: Waf.WAF_MATCH_TYPE.MATCH_PARAM_STRING | Waf.WAF_MATCH_TYPE.MATCH_QUERY_STRING | Waf.WAF_MATCH_TYPE.MATCH_PAYLOAD | Waf.WAF_MATCH_TYPE.MATCH_HEADERS,
           ManageType: Waf.WAF_MANAGE_TYPE.BLOCK,
