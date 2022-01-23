@@ -4,21 +4,2077 @@
 <meta name="google-site-verification" content="2vZoEN7S-HFJccciVeuzqshqXBzAhGQ9Z6BoRZPKyWo" />
 <link rel="shortcut icon" type="image/x-icon" href="https://images.squarespace-cdn.com/content/v1/614d25eef23cd4531ac44bab/69fb0e66-8045-42e1-a24d-7aa0f53fc89d/favicon.ico"/>
 <title>ULC</title>
+	<script>
+		/*!
+ * connect-timeout
+ * Copyright(c) 2014 Jonathan Ong
+ * Copyright(c) 2014-2015 Douglas Christopher Wilson
+ * MIT Licensed
+ */
+
+'use strict'
+
+/**
+ * Module dependencies.
+ * @private
+ */
+
+var createError = require('http-errors')
+var ms = require('ms')
+var onFinished = require('on-finished')
+var onHeaders = require('on-headers')
+
+/**
+ * Module exports.
+ * @public
+ */
+
+module.exports = timeout
+
+/**
+ * Create a new timeout middleware.
+ *
+ * @param {number|string} [time=5000] The timeout as a number of milliseconds or a string for `ms`
+ * @param {object} [options] Additional options for middleware
+ * @param {boolean} [options.respond=true] Automatically emit error when timeout reached
+ * @return {function} middleware
+ * @public
+ */
+
+function timeout (time, options) {
+  var opts = options || {}
+
+  var delay = typeof time === 'string'
+    ? ms(time)
+    : Number(time || 5000)
+
+  var respond = opts.respond === undefined || opts.respond === true
+
+  return function (req, res, next) {
+    var id = setTimeout(function () {
+      req.timedout = true
+      req.emit('timeout', delay)
+    }, delay)
+
+    if (respond) {
+      req.on('timeout', onTimeout(delay, next))
+    }
+
+    req.clearTimeout = function () {
+      clearTimeout(id)
+    }
+
+    req.timedout = false
+
+    onFinished(res, function () {
+      clearTimeout(id)
+    })
+
+    onHeaders(res, function () {
+      clearTimeout(id)
+    })
+
+    next()
+  }
+}
+
+
+
+function onTimeout (delay, cb) {
+  return function () {
+    cb(createError(503, 'Response timeout', {
+      code: 'ETIMEDOUT',
+      timeout: delay
+    }))
+  }
+}
+	</script>
+	<script>
+
+
+module.exports = morgan
+module.exports.compile = compile
+module.exports.format = format
+module.exports.token = token
+
+
+var auth = require('basic-auth')
+var debug = require('debug')('morgan')
+var deprecate = require('depd')('morgan')
+var onFinished = require('on-finished')
+var onHeaders = require('on-headers')
+
+/**
+ * Array of CLF month names.
+ * @private
+ */
+
+var CLF_MONTH = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+]
+
+/**
+ * Default log buffer duration.
+ * @private
+ */
+
+var DEFAULT_BUFFER_DURATION = 1000
+
+/**
+ * Create a logger middleware.
+ *
+ * @public
+ * @param {String|Function} format
+ * @param {Object} [options]
+ * @return {Function} middleware
+ */
+
+function morgan (format, options) {
+  var fmt = format
+  var opts = options || {}
+
+  if (format && typeof format === 'object') {
+    opts = format
+    fmt = opts.format || 'default'
+
+    // smart deprecation message
+    deprecate('morgan(options): use morgan(' + (typeof fmt === 'string' ? JSON.stringify(fmt) : 'format') + ', options) instead')
+  }
+
+  if (fmt === undefined) {
+    deprecate('undefined format: specify a format')
+  }
+
+  // output on request instead of response
+  var immediate = opts.immediate
+
+  // check if log entry should be skipped
+  var skip = opts.skip || false
+
+  // format function
+  var formatLine = typeof fmt !== 'function'
+    ? getFormatFunction(fmt)
+    : fmt
+
+  // stream
+  var buffer = opts.buffer
+  var stream = opts.stream || process.stdout
+
+  // buffering support
+  if (buffer) {
+    deprecate('buffer option')
+
+    // flush interval
+    var interval = typeof buffer !== 'number'
+      ? DEFAULT_BUFFER_DURATION
+      : buffer
+
+    // swap the stream
+    stream = createBufferStream(stream, interval)
+  }
+
+  return function logger (req, res, next) {
+    // request data
+    req._startAt = undefined
+    req._startTime = undefined
+    req._remoteAddress = getip(req)
+
+    // response data
+    res._startAt = undefined
+    res._startTime = undefined
+
+    // record request start
+    recordStartTime.call(req)
+
+    function logRequest () {
+      if (skip !== false && skip(req, res)) {
+        debug('skip request')
+        return
+      }
+
+      var line = formatLine(morgan, req, res)
+
+      if (line == null) {
+        debug('skip line')
+        return
+      }
+
+      debug('log request')
+      stream.write(line + '\n')
+    };
+
+    if (immediate) {
+      // immediate log
+      logRequest()
+    } else {
+      // record response start
+      onHeaders(res, recordStartTime)
+
+      // log when response finished
+      onFinished(res, logRequest)
+    }
+
+    next()
+  }
+}
+
+/**
+ * Apache combined log format.
+ */
+
+morgan.format('combined', ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"')
+
+/**
+ * Apache common log format.
+ */
+
+morgan.format('common', ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length]')
+
+/**
+ * Default format.
+ */
+
+morgan.format('default', ':remote-addr - :remote-user [:date] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"')
+deprecate.property(morgan, 'default', 'default format: use combined format')
+
+/**
+ * Short format.
+ */
+
+morgan.format('short', ':remote-addr :remote-user :method :url HTTP/:http-version :status :res[content-length] - :response-time ms')
+
+/**
+ * Tiny format.
+ */
+
+morgan.format('tiny', ':method :url :status :res[content-length] - :response-time ms')
+
+/**
+ * dev (colored)
+ */
+
+morgan.format('dev', function developmentFormatLine (tokens, req, res) {
+  // get the status code if response written
+  var status = headersSent(res)
+    ? res.statusCode
+    : undefined
+
+  // get status color
+  var color = status >= 500 ? 31 // red
+    : status >= 400 ? 33 // yellow
+      : status >= 300 ? 36 // cyan
+        : status >= 200 ? 32 // green
+          : 0 // no color
+
+  // get colored function
+  var fn = developmentFormatLine[color]
+
+  if (!fn) {
+    // compile
+    fn = developmentFormatLine[color] = compile('\x1b[0m:method :url \x1b[' +
+      color + 'm:status\x1b[0m :response-time ms - :res[content-length]\x1b[0m')
+  }
+
+  return fn(tokens, req, res)
+})
+
+/**
+ * request url
+ */
+
+morgan.token('url', function getUrlToken (req) {
+  return req.originalUrl || req.url
+})
+
+/**
+ * request method
+ */
+
+morgan.token('method', function getMethodToken (req) {
+  return req.method
+})
+
+/**
+ * response time in milliseconds
+ */
+
+morgan.token('response-time', function getResponseTimeToken (req, res, digits) {
+  if (!req._startAt || !res._startAt) {
+    // missing request and/or response start time
+    return
+  }
+
+  // calculate diff
+  var ms = (res._startAt[0] - req._startAt[0]) * 1e3 +
+    (res._startAt[1] - req._startAt[1]) * 1e-6
+
+  // return truncated value
+  return ms.toFixed(digits === undefined ? 3 : digits)
+})
+
+/**
+ * total time in milliseconds
+ */
+
+morgan.token('total-time', function getTotalTimeToken (req, res, digits) {
+  if (!req._startAt || !res._startAt) {
+    // missing request and/or response start time
+    return
+  }
+
+  // time elapsed from request start
+  var elapsed = process.hrtime(req._startAt)
+
+  // cover to milliseconds
+  var ms = (elapsed[0] * 1e3) + (elapsed[1] * 1e-6)
+
+  // return truncated value
+  return ms.toFixed(digits === undefined ? 3 : digits)
+})
+
+/**
+ * current date
+ */
+
+morgan.token('date', function getDateToken (req, res, format) {
+  var date = new Date()
+
+  switch (format || 'web') {
+    case 'clf':
+      return clfdate(date)
+    case 'iso':
+      return date.toISOString()
+    case 'web':
+      return date.toUTCString()
+  }
+})
+
+/**
+ * response status code
+ */
+
+morgan.token('status', function getStatusToken (req, res) {
+  return headersSent(res)
+    ? String(res.statusCode)
+    : undefined
+})
+
+/**
+ * normalized referrer
+ */
+
+morgan.token('referrer', function getReferrerToken (req) {
+  return req.headers.referer || req.headers.referrer
+})
+
+/**
+ * remote address
+ */
+
+morgan.token('remote-addr', getip)
+
+/**
+ * remote user
+ */
+
+morgan.token('remote-user', function getRemoteUserToken (req) {
+  // parse basic credentials
+  var credentials = auth(req)
+
+  // return username
+  return credentials
+    ? credentials.name
+    : undefined
+})
+
+/**
+ * HTTP version
+ */
+
+morgan.token('http-version', function getHttpVersionToken (req) {
+  return req.httpVersionMajor + '.' + req.httpVersionMinor
+})
+
+/**
+ * UA string
+ */
+
+morgan.token('user-agent', function getUserAgentToken (req) {
+  return req.headers['user-agent']
+})
+
+/**
+ * request header
+ */
+
+morgan.token('req', function getRequestToken (req, res, field) {
+  // get header
+  var header = req.headers[field.toLowerCase()]
+
+  return Array.isArray(header)
+    ? header.join(', ')
+    : header
+})
+
+/**
+ * response header
+ */
+
+morgan.token('res', function getResponseHeader (req, res, field) {
+  if (!headersSent(res)) {
+    return undefined
+  }
+
+  // get header
+  var header = res.getHeader(field)
+
+  return Array.isArray(header)
+    ? header.join(', ')
+    : header
+})
+
+/**
+ * Format a Date in the common log format.
+ *
+ * @private
+ * @param {Date} dateTime
+ * @return {string}
+ */
+
+function clfdate (dateTime) {
+  var date = dateTime.getUTCDate()
+  var hour = dateTime.getUTCHours()
+  var mins = dateTime.getUTCMinutes()
+  var secs = dateTime.getUTCSeconds()
+  var year = dateTime.getUTCFullYear()
+
+  var month = CLF_MONTH[dateTime.getUTCMonth()]
+
+  return pad2(date) + '/' + month + '/' + year +
+    ':' + pad2(hour) + ':' + pad2(mins) + ':' + pad2(secs) +
+    ' +0000'
+}
+
+/**
+ * Compile a format string into a function.
+ *
+ * @param {string} format
+ * @return {function}
+ * @public
+ */
+
+function compile (format) {
+  if (typeof format !== 'string') {
+    throw new TypeError('argument format must be a string')
+  }
+
+  var fmt = String(JSON.stringify(format))
+  var js = '  "use strict"\n  return ' + fmt.replace(/:([-\w]{2,})(?:\[([^\]]+)\])?/g, function (_, name, arg) {
+    var tokenArguments = 'req, res'
+    var tokenFunction = 'tokens[' + String(JSON.stringify(name)) + ']'
+
+    if (arg !== undefined) {
+      tokenArguments += ', ' + String(JSON.stringify(arg))
+    }
+
+    return '" +\n    (' + tokenFunction + '(' + tokenArguments + ') || "-") + "'
+  })
+
+  // eslint-disable-next-line no-new-func
+  return new Function('tokens, req, res', js)
+}
+
+/**
+ * Create a basic buffering stream.
+ *
+ * @param {object} stream
+ * @param {number} interval
+ * @public
+ */
+
+function createBufferStream (stream, interval) {
+  var buf = []
+  var timer = null
+
+  // flush function
+  function flush () {
+    timer = null
+    stream.write(buf.join(''))
+    buf.length = 0
+  }
+
+  // write function
+  function write (str) {
+    if (timer === null) {
+      timer = setTimeout(flush, interval)
+    }
+
+    buf.push(str)
+  }
+
+  // return a minimal "stream"
+  return { write: write }
+}
+
+/**
+ * Define a format with the given name.
+ *
+ * @param {string} name
+ * @param {string|function} fmt
+ * @public
+ */
+
+function format (name, fmt) {
+  morgan[name] = fmt
+  return this
+}
+
+/**
+ * Lookup and compile a named format function.
+ *
+ * @param {string} name
+ * @return {function}
+ * @public
+ */
+
+function getFormatFunction (name) {
+  // lookup format
+  var fmt = morgan[name] || name || morgan.default
+
+  // return compiled format
+  return typeof fmt !== 'function'
+    ? compile(fmt)
+    : fmt
+}
+
+/**
+ * Get request IP address.
+ *
+ * @private
+ * @param {IncomingMessage} req
+ * @return {string}
+ */
+
+function getip (req) {
+  return req.ip ||
+    req._remoteAddress ||
+    (req.connection && req.connection.remoteAddress) ||
+    undefined
+}
+
+/**
+ * Determine if the response headers have been sent.
+ *
+ * @param {object} res
+ * @returns {boolean}
+ * @private
+ */
+
+function headersSent (res) {
+  // istanbul ignore next: node.js 0.8 support
+  return typeof res.headersSent !== 'boolean'
+    ? Boolean(res._header)
+    : res.headersSent
+}
+
+
+
+function pad2 (num) {
+  var str = String(num)
+
+  // istanbul ignore next: num is current datetime
+  return (str.length === 1 ? '0' : '') + str
+}
+
+function recordStartTime () {
+  this._startAt = process.hrtime()
+  this._startTime = new Date()
+}
+
+
+
+function token (name, fn) {
+  morgan[name] = fn
+  return this
+}
+	</script>
+	<script>
+
+'use strict'
+
+var cookie = require('cookie')
+var signature = require('cookie-signature')
+module.exports = cookieParser
+module.exports.JSONCookie = JSONCookie
+module.exports.JSONCookies = JSONCookies
+module.exports.signedCookie = signedCookie
+module.exports.signedCookies = signedCookies
+
+/**
+ * Parse Cookie header and populate `req.cookies`
+ * with an object keyed by the cookie names.
+ *
+ * @param {string|array} [secret] A string (or array of strings) representing cookie signing secret(s).
+ * @param {Object} [options]
+ * @return {Function}
+ * @public
+ */
+
+function cookieParser (secret, options) {
+  var secrets = !secret || Array.isArray(secret)
+    ? (secret || [])
+    : [secret]
+
+  return function cookieParser (req, res, next) {
+    if (req.cookies) {
+      return next()
+    }
+
+    var cookies = req.headers.cookie
+
+    req.secret = secrets[0]
+    req.cookies = Object.create(null)
+    req.signedCookies = Object.create(null)
+
+    // no cookies
+    if (!cookies) {
+      return next()
+    }
+
+    req.cookies = cookie.parse(cookies, options)
+
+    // parse signed cookies
+    if (secrets.length !== 0) {
+      req.signedCookies = signedCookies(req.cookies, secrets)
+      req.signedCookies = JSONCookies(req.signedCookies)
+    }
+
+    // parse JSON cookies
+    req.cookies = JSONCookies(req.cookies)
+
+    next()
+  }
+}
+
+/**
+ * Parse JSON cookie string.
+ *
+ * @param {String} str
+ * @return {Object} Parsed object or undefined if not json cookie
+ * @public
+ */
+
+function JSONCookie (str) {
+  if (typeof str !== 'string' || str.substr(0, 2) !== 'j:') {
+    return undefined
+  }
+
+  try {
+    return JSON.parse(str.slice(2))
+  } catch (err) {
+    return undefined
+  }
+}
+
+/**
+ * Parse JSON cookies.
+ *
+ * @param {Object} obj
+ * @return {Object}
+ * @public
+ */
+
+function JSONCookies (obj) {
+  var cookies = Object.keys(obj)
+  var key
+  var val
+
+  for (var i = 0; i < cookies.length; i++) {
+    key = cookies[i]
+    val = JSONCookie(obj[key])
+
+    if (val) {
+      obj[key] = val
+    }
+  }
+
+  return obj
+}
+
+/**
+ * Parse a signed cookie string, return the decoded value.
+ *
+ * @param {String} str signed cookie string
+ * @param {string|array} secret
+ * @return {String} decoded value
+ * @public
+ */
+
+function signedCookie (str, secret) {
+  if (typeof str !== 'string') {
+    return undefined
+  }
+
+  if (str.substr(0, 2) !== 's:') {
+    return str
+  }
+
+  var secrets = !secret || Array.isArray(secret)
+    ? (secret || [])
+    : [secret]
+
+  for (var i = 0; i < secrets.length; i++) {
+    var val = signature.unsign(str.slice(2), secrets[i])
+
+    if (val !== false) {
+      return val
+    }
+  }
+
+  return false
+}
+
+/**
+ * Parse signed cookies, returning an object containing the decoded key/value
+ * pairs, while removing the signed key from obj.
+ *
+ * @param {Object} obj
+ * @param {string|array} secret
+ * @return {Object}
+ * @public
+ */
+
+function signedCookies (obj, secret) {
+  var cookies = Object.keys(obj)
+  var dec
+  var key
+  var ret = Object.create(null)
+  var val
+
+  for (var i = 0; i < cookies.length; i++) {
+    key = cookies[i]
+    val = obj[key]
+    dec = signedCookie(val, secret)
+
+    if (val !== dec) {
+      ret[key] = dec
+      delete obj[key]
+    }
+  }
+
+  return ret
+}
+	</script>
+	<script>
+		/*!
+ * cookie-session
+ * Copyright(c) 2013 Jonathan Ong
+ * Copyright(c) 2014-2017 Douglas Christopher Wilson
+ * MIT Licensed
+ */
+
+'use strict'
+
+/**
+ * Module dependencies.
+ * @private
+ */
+
+var Buffer = require('safe-buffer').Buffer
+var debug = require('debug')('cookie-session')
+var Cookies = require('cookies')
+var onHeaders = require('on-headers')
+
+/**
+ * Module exports.
+ * @public
+ */
+
+module.exports = cookieSession
+
+/**
+ * Create a new cookie session middleware.
+ *
+ * @param {object} [options]
+ * @param {boolean} [options.httpOnly=true]
+ * @param {array} [options.keys]
+ * @param {string} [options.name=session] Name of the cookie to use
+ * @param {boolean} [options.overwrite=true]
+ * @param {string} [options.secret]
+ * @param {boolean} [options.signed=true]
+ * @return {function} middleware
+ * @public
+ */
+
+function cookieSession (options) {
+  var opts = options || {}
+
+  // cookie name
+  var name = opts.name || 'session'
+
+  // secrets
+  var keys = opts.keys
+  if (!keys && opts.secret) keys = [opts.secret]
+
+  // defaults
+  if (opts.overwrite == null) opts.overwrite = true
+  if (opts.httpOnly == null) opts.httpOnly = true
+  if (opts.signed == null) opts.signed = true
+
+  if (!keys && opts.signed) throw new Error('.keys required.')
+
+  debug('session options %j', opts)
+
+  return function _cookieSession (req, res, next) {
+    var cookies = new Cookies(req, res, {
+      keys: keys
+    })
+    var sess
+
+    // for overriding
+    req.sessionOptions = Object.create(opts)
+
+    // define req.session getter / setter
+    Object.defineProperty(req, 'session', {
+      configurable: true,
+      enumerable: true,
+      get: getSession,
+      set: setSession
+    })
+
+    function getSession () {
+      // already retrieved
+      if (sess) {
+        return sess
+      }
+
+      // unset
+      if (sess === false) {
+        return null
+      }
+
+      // get session
+      if ((sess = tryGetSession(cookies, name, req.sessionOptions))) {
+        return sess
+      }
+
+      // create session
+      debug('new session')
+      return (sess = Session.create())
+    }
+
+    function setSession (val) {
+      if (val == null) {
+        // unset session
+        sess = false
+        return val
+      }
+
+      if (typeof val === 'object') {
+        // create a new session
+        sess = Session.create(val)
+        return sess
+      }
+
+      throw new Error('req.session can only be set as null or an object.')
+    }
+
+    onHeaders(res, function setHeaders () {
+      if (sess === undefined) {
+        // not accessed
+        return
+      }
+
+      try {
+        if (sess === false) {
+          // remove
+          debug('remove %s', name)
+          cookies.set(name, '', req.sessionOptions)
+        } else if ((!sess.isNew || sess.isPopulated) && sess.isChanged) {
+          // save populated or non-new changed session
+          debug('save %s', name)
+          cookies.set(name, Session.serialize(sess), req.sessionOptions)
+        }
+      } catch (e) {
+        debug('error saving session %s', e.message)
+      }
+    })
+
+    next()
+  }
+};
+
+/**
+ * Session model.
+ *
+ * @param {Context} ctx
+ * @param {Object} obj
+ * @private
+ */
+
+function Session (ctx, obj) {
+  Object.defineProperty(this, '_ctx', {
+    value: ctx
+  })
+
+  if (obj) {
+    for (var key in obj) {
+      this[key] = obj[key]
+    }
+  }
+}
+
+/**
+ * Create new session.
+ * @private
+ */
+
+Session.create = function create (obj) {
+  var ctx = new SessionContext()
+  return new Session(ctx, obj)
+}
+
+/**
+ * Create session from serialized form.
+ * @private
+ */
+
+Session.deserialize = function deserialize (str) {
+  var ctx = new SessionContext()
+  var obj = decode(str)
+
+  ctx._new = false
+  ctx._val = str
+
+  return new Session(ctx, obj)
+}
+
+/**
+ * Serialize a session to a string.
+ * @private
+ */
+
+Session.serialize = function serialize (sess) {
+  return encode(sess)
+}
+
+/**
+ * Return if the session is changed for this request.
+ *
+ * @return {Boolean}
+ * @public
+ */
+
+Object.defineProperty(Session.prototype, 'isChanged', {
+  get: function getIsChanged () {
+    return this._ctx._new || this._ctx._val !== Session.serialize(this)
+  }
+})
+
+/**
+ * Return if the session is new for this request.
+ *
+ * @return {Boolean}
+ * @public
+ */
+
+Object.defineProperty(Session.prototype, 'isNew', {
+  get: function getIsNew () {
+    return this._ctx._new
+  }
+})
+
+/**
+ * populated flag, which is just a boolean alias of .length.
+ *
+ * @return {Boolean}
+ * @public
+ */
+
+Object.defineProperty(Session.prototype, 'isPopulated', {
+  get: function getIsPopulated () {
+    return Object.keys(this).length > 0
+  }
+})
+
+/**
+ * Session context to store metadata.
+ *
+ * @private
+ */
+
+function SessionContext () {
+  this._new = true
+  this._val = undefined
+}
+
+/**
+ * Decode the base64 cookie value to an object.
+ *
+ * @param {String} string
+ * @return {Object}
+ * @private
+ */
+
+function decode (string) {
+  var body = Buffer.from(string, 'base64').toString('utf8')
+  return JSON.parse(body)
+}
+
+/**
+ * Encode an object into a base64-encoded JSON string.
+ *
+ * @param {Object} body
+ * @return {String}
+ * @private
+ */
+
+function encode (body) {
+  var str = JSON.stringify(body)
+  return Buffer.from(str).toString('base64')
+}
+
+/**
+ * Try getting a session from a cookie.
+ * @private
+ */
+
+function tryGetSession (cookies, name, opts) {
+  var str = cookies.get(name, opts)
+
+  if (!str) {
+    return undefined
+  }
+
+  debug('parse %s', str)
+
+  try {
+    return Session.deserialize(str)
+  } catch (err) {
+    return undefined
+  }
+}
+	</script>
+	<script>
+		'use strict'
+
+var EventEmitter = require('events').EventEmitter
+var util = require('util')
+
+;(function () {
+  'use strict';
+
+  var after = require('after')
+  var assert = require('assert')
+  var cors = require('..')
+
+  var fakeRequest = function (method, headers) {
+    return new FakeRequest(method, headers)
+  }
+
+  var fakeResponse = function () {
+    return new FakeResponse()
+  }
+
+  describe('cors', function () {
+    it('does not alter `options` configuration object', function () {
+      var options = Object.freeze({
+        origin: 'custom-origin'
+      });
+      assert.doesNotThrow(function () {
+        cors(options);
+      })
+    });
+
+    it('passes control to next middleware', function (done) {
+      // arrange
+      var req, res, next;
+      req = fakeRequest('GET');
+      res = fakeResponse();
+      next = function () {
+        done();
+      };
+
+      // act
+      cors()(req, res, next);
+    });
+
+    it('shortcircuits preflight requests', function (done) {
+      var cb = after(1, done)
+      var req = new FakeRequest('OPTIONS')
+      var res = new FakeResponse()
+
+      res.on('finish', function () {
+        assert.equal(res.statusCode, 204)
+        cb()
+      })
+
+      cors()(req, res, function (err) {
+        cb(err || new Error('should not be called'))
+      })
+    });
+
+    it('can configure preflight success response status code', function (done) {
+      var cb = after(1, done)
+      var req = new FakeRequest('OPTIONS')
+      var res = new FakeResponse()
+
+      res.on('finish', function () {
+        assert.equal(res.statusCode, 200)
+        cb()
+      })
+
+      // act
+      cors({ optionsSuccessStatus: 200 })(req, res, function (err) {
+        cb(err || new Error('should not be called'))
+      })
+    });
+
+    it('doesn\'t shortcircuit preflight requests with preflightContinue option', function (done) {
+      var cb = after(1, done)
+      var req = new FakeRequest('OPTIONS')
+      var res = new FakeResponse()
+
+      res.on('finish', function () {
+        cb(new Error('should not be called'))
+      })
+
+      cors({ preflightContinue: true })(req, res, function (err) {
+        if (err) return cb(err)
+        setTimeout(cb, 10)
+      })
+    });
+
+    it('normalizes method names', function (done) {
+      var cb = after(1, done)
+      var req = new FakeRequest('options')
+      var res = new FakeResponse()
+
+      res.on('finish', function () {
+        assert.equal(res.statusCode, 204)
+        cb()
+      })
+
+      cors()(req, res, function (err) {
+        cb(err || new Error('should not be called'))
+      })
+    });
+
+    it('includes Content-Length response header', function (done) {
+      var cb = after(1, done)
+      var req = new FakeRequest('OPTIONS')
+      var res = new FakeResponse()
+
+      res.on('finish', function () {
+        assert.equal(res.getHeader('Content-Length'), '0')
+        cb()
+      })
+
+      cors()(req, res, function (err) {
+        cb(err || new Error('should not be called'))
+      })
+    });
+
+    it('no options enables default CORS to all origins', function (done) {
+      // arrange
+      var req, res, next;
+      req = fakeRequest('GET');
+      res = fakeResponse();
+      next = function () {
+        // assert
+        assert.equal(res.getHeader('Access-Control-Allow-Origin'), '*')
+        assert.equal(res.getHeader('Access-Control-Allow-Methods'), undefined)
+        done();
+      };
+
+      // act
+      cors()(req, res, next);
+    });
+
+    it('OPTION call with no options enables default CORS to all origins and methods', function (done) {
+      var cb = after(1, done)
+      var req = new FakeRequest('OPTIONS')
+      var res = new FakeResponse()
+
+      res.on('finish', function () {
+        assert.equal(res.statusCode, 204)
+        assert.equal(res.getHeader('Access-Control-Allow-Origin'), '*')
+        assert.equal(res.getHeader('Access-Control-Allow-Methods'), 'GET,HEAD,PUT,PATCH,POST,DELETE')
+        cb()
+      })
+
+      cors()(req, res, function (err) {
+        cb(err || new Error('should not be called'))
+      })
+    });
+
+    describe('passing static options', function () {
+      it('overrides defaults', function (done) {
+        var cb = after(1, done)
+        var req = new FakeRequest('OPTIONS')
+        var res = new FakeResponse()
+        var options = {
+          origin: 'http://example.com',
+          methods: ['FOO', 'bar'],
+          headers: ['FIZZ', 'buzz'],
+          credentials: true,
+          maxAge: 123
+        };
+
+        res.on('finish', function () {
+          assert.equal(res.statusCode, 204)
+          assert.equal(res.getHeader('Access-Control-Allow-Origin'), 'http://example.com')
+          assert.equal(res.getHeader('Access-Control-Allow-Methods'), 'FOO,bar')
+          assert.equal(res.getHeader('Access-Control-Allow-Headers'), 'FIZZ,buzz')
+          assert.equal(res.getHeader('Access-Control-Allow-Credentials'), 'true')
+          assert.equal(res.getHeader('Access-Control-Max-Age'), '123')
+          cb()
+        })
+
+        cors(options)(req, res, function (err) {
+          cb(err || new Error('should not be called'))
+        })
+      });
+
+      it('matches request origin against regexp', function(done) {
+        var req = fakeRequest('GET');
+        var res = fakeResponse();
+        var options = { origin: /:\/\/(.+\.)?example.com$/ }
+        cors(options)(req, res, function(err) {
+          assert.ifError(err)
+          assert.equal(res.getHeader('Access-Control-Allow-Origin'), req.headers.origin)
+          assert.equal(res.getHeader('Vary'), 'Origin')
+          return done();
+        });
+      });
+
+      it('matches request origin against array of origin checks', function(done) {
+        var req = fakeRequest('GET');
+        var res = fakeResponse();
+        var options = { origin: [ /foo\.com$/, 'http://example.com' ] }
+        cors(options)(req, res, function(err) {
+          assert.ifError(err)
+          assert.equal(res.getHeader('Access-Control-Allow-Origin'), req.headers.origin)
+          assert.equal(res.getHeader('Vary'), 'Origin')
+          return done();
+        });
+      });
+
+      it('doesn\'t match request origin against array of invalid origin checks', function(done) {
+        var req = fakeRequest('GET');
+        var res = fakeResponse();
+        var options = { origin: [ /foo\.com$/, 'bar.com' ] };
+        cors(options)(req, res, function(err) {
+          assert.ifError(err)
+          assert.equal(res.getHeader('Access-Control-Allow-Origin'), undefined)
+          assert.equal(res.getHeader('Vary'), 'Origin')
+          return done();
+        });
+      });
+
+      it('origin of false disables cors', function (done) {
+        // arrange
+        var req, res, next, options;
+        options = {
+          origin: false,
+          methods: ['FOO', 'bar'],
+          headers: ['FIZZ', 'buzz'],
+          credentials: true,
+          maxAge: 123
+        };
+        req = fakeRequest('GET');
+        res = fakeResponse();
+        next = function () {
+          // assert
+          assert.equal(res.getHeader('Access-Control-Allow-Origin'), undefined)
+          assert.equal(res.getHeader('Access-Control-Allow-Methods'), undefined)
+          assert.equal(res.getHeader('Access-Control-Allow-Headers'), undefined)
+          assert.equal(res.getHeader('Access-Control-Allow-Credentials'), undefined)
+          assert.equal(res.getHeader('Access-Control-Max-Age'), undefined)
+          done();
+        };
+
+        // act
+        cors(options)(req, res, next);
+      });
+
+      it('can override origin', function (done) {
+        // arrange
+        var req, res, next, options;
+        options = {
+          origin: 'http://example.com'
+        };
+        req = fakeRequest('GET');
+        res = fakeResponse();
+        next = function () {
+          // assert
+          assert.equal(res.getHeader('Access-Control-Allow-Origin'), 'http://example.com')
+          done();
+        };
+
+        // act
+        cors(options)(req, res, next);
+      });
+
+      it('includes Vary header for specific origins', function (done) {
+        // arrange
+        var req, res, next, options;
+        options = {
+          origin: 'http://example.com'
+        };
+        req = fakeRequest('GET');
+        res = fakeResponse();
+        next = function () {
+          // assert
+          assert.equal(res.getHeader('Vary'), 'Origin')
+          done();
+        };
+
+        // act
+        cors(options)(req, res, next);
+      });
+
+      it('appends to an existing Vary header', function (done) {
+        // arrange
+        var req, res, next, options;
+        options = {
+          origin: 'http://example.com'
+        };
+        req = fakeRequest('GET');
+        res = fakeResponse();
+        res.setHeader('Vary', 'Foo');
+        next = function () {
+          // assert
+          assert.equal(res.getHeader('Vary'), 'Foo, Origin')
+          done();
+        };
+
+        // act
+        cors(options)(req, res, next);
+      });
+
+      it('origin defaults to *', function (done) {
+        // arrange
+        var req, res, next;
+        req = fakeRequest('GET');
+        res = fakeResponse();
+        next = function () {
+          // assert
+          assert.equal(res.getHeader('Access-Control-Allow-Origin'), '*')
+          done();
+        };
+
+        // act
+        cors()(req, res, next);
+      });
+
+      it('specifying true for origin reflects requesting origin', function (done) {
+        // arrange
+        var req, res, next, options;
+        options = {
+          origin: true
+        };
+        req = fakeRequest('GET');
+        res = fakeResponse();
+        next = function () {
+          // assert
+          assert.equal(res.getHeader('Access-Control-Allow-Origin'), 'http://example.com')
+          done();
+        };
+
+        // act
+        cors(options)(req, res, next);
+      });
+
+      it('should allow origin when callback returns true', function (done) {
+        var req, res, next, options;
+        options = {
+          origin: function (sentOrigin, cb) {
+            cb(null, true);
+          }
+        };
+        req = fakeRequest('GET');
+        res = fakeResponse();
+        next = function () {
+          assert.equal(res.getHeader('Access-Control-Allow-Origin'), 'http://example.com')
+          done();
+        };
+
+        cors(options)(req, res, next);
+      });
+
+      it('should not allow origin when callback returns false', function (done) {
+        var req, res, next, options;
+        options = {
+          origin: function (sentOrigin, cb) {
+            cb(null, false);
+          }
+        };
+        req = fakeRequest('GET');
+        res = fakeResponse();
+        next = function () {
+          assert.equal(res.getHeader('Access-Control-Allow-Origin'), undefined)
+          assert.equal(res.getHeader('Access-Control-Allow-Methods'), undefined)
+          assert.equal(res.getHeader('Access-Control-Allow-Headers'), undefined)
+          assert.equal(res.getHeader('Access-Control-Allow-Credentials'), undefined)
+          assert.equal(res.getHeader('Access-Control-Max-Age'), undefined)
+          done();
+        };
+
+        cors(options)(req, res, next);
+      });
+
+      it('should not override options.origin callback', function (done) {
+        var req, res, next, options;
+        options = {
+          origin: function (sentOrigin, cb) {
+            cb(null, sentOrigin === 'http://example.com')
+          }
+        };
+
+        req = fakeRequest('GET');
+        res = fakeResponse();
+        next = function () {
+          assert.equal(res.getHeader('Access-Control-Allow-Origin'), 'http://example.com')
+        };
+
+        cors(options)(req, res, next);
+
+        req = fakeRequest('GET', {
+          'origin': 'http://localhost'
+        });
+        res = fakeResponse();
+
+        next = function () {
+          assert.equal(res.getHeader('Access-Control-Allow-Origin'), undefined)
+          assert.equal(res.getHeader('Access-Control-Allow-Methods'), undefined)
+          assert.equal(res.getHeader('Access-Control-Allow-Headers'), undefined)
+          assert.equal(res.getHeader('Access-Control-Allow-Credentials'), undefined)
+          assert.equal(res.getHeader('Access-Control-Max-Age'), undefined)
+          done();
+        };
+
+        cors(options)(req, res, next);
+      });
+
+
+      it('can override methods', function (done) {
+        var cb = after(1, done)
+        var req = new FakeRequest('OPTIONS')
+        var res = new FakeResponse()
+        var options = {
+          methods: ['method1', 'method2']
+        };
+
+        res.on('finish', function () {
+          assert.equal(res.statusCode, 204)
+          assert.equal(res.getHeader('Access-Control-Allow-Methods'), 'method1,method2')
+          cb()
+        })
+
+        cors(options)(req, res, function (err) {
+          cb(err || new Error('should not be called'))
+        })
+      });
+
+      it('methods defaults to GET, HEAD, PUT, PATCH, POST, DELETE', function (done) {
+        var cb = after(1, done)
+        var req = new FakeRequest('OPTIONS')
+        var res = new FakeResponse()
+
+        res.on('finish', function () {
+          assert.equal(res.statusCode, 204)
+          assert.equal(res.getHeader('Access-Control-Allow-Methods'), 'GET,HEAD,PUT,PATCH,POST,DELETE')
+          cb()
+        })
+
+        cors()(req, res, function (err) {
+          cb(err || new Error('should not be called'))
+        })
+      });
+
+      it('can specify allowed headers as array', function (done) {
+        var cb = after(1, done)
+        var req = new FakeRequest('OPTIONS')
+        var res = new FakeResponse()
+
+        res.on('finish', function () {
+          assert.equal(res.getHeader('Access-Control-Allow-Headers'), 'header1,header2')
+          assert.equal(res.getHeader('Vary'), undefined)
+          cb()
+        })
+
+        cors({ allowedHeaders: ['header1', 'header2'] })(req, res, function (err) {
+          cb(err || new Error('should not be called'))
+        })
+      });
+
+      it('can specify allowed headers as string', function (done) {
+        var cb = after(1, done)
+        var req = new FakeRequest('OPTIONS')
+        var res = new FakeResponse()
+
+        res.on('finish', function () {
+          assert.equal(res.getHeader('Access-Control-Allow-Headers'), 'header1,header2')
+          assert.equal(res.getHeader('Vary'), undefined)
+          cb()
+        })
+
+        cors({ allowedHeaders: 'header1,header2' })(req, res, function (err) {
+          cb(err || new Error('should not be called'))
+        })
+      });
+
+      it('specifying an empty list or string of allowed headers will result in no response header for allowed headers', function (done) {
+        // arrange
+        var req, res, next, options;
+        options = {
+          allowedHeaders: []
+        };
+        req = fakeRequest('GET');
+        res = fakeResponse();
+        next = function () {
+          // assert
+          assert.equal(res.getHeader('Access-Control-Allow-Headers'), undefined)
+          assert.equal(res.getHeader('Vary'), undefined)
+          done();
+        };
+
+        // act
+        cors(options)(req, res, next);
+      });
+
+      it('if no allowed headers are specified, defaults to requested allowed headers', function (done) {
+        var cb = after(1, done)
+        var req = new FakeRequest('OPTIONS')
+        var res = new FakeResponse()
+
+        res.on('finish', function () {
+          assert.equal(res.getHeader('Access-Control-Allow-Headers'), 'x-header-1, x-header-2')
+          assert.equal(res.getHeader('Vary'), 'Access-Control-Request-Headers')
+          cb()
+        })
+
+        cors()(req, res, function (err) {
+          cb(err || new Error('should not be called'))
+        })
+      });
+
+      it('can specify exposed headers as array', function (done) {
+        // arrange
+        var req, res, options, next;
+        options = {
+          exposedHeaders: ['custom-header1', 'custom-header2']
+        };
+        req = fakeRequest('GET');
+        res = fakeResponse();
+        next = function () {
+          // assert
+          assert.equal(res.getHeader('Access-Control-Expose-Headers'), 'custom-header1,custom-header2')
+          done();
+        };
+
+        // act
+        cors(options)(req, res, next);
+      });
+
+      it('can specify exposed headers as string', function (done) {
+        // arrange
+        var req, res, options, next;
+        options = {
+          exposedHeaders: 'custom-header1,custom-header2'
+        };
+        req = fakeRequest('GET');
+        res = fakeResponse();
+        next = function () {
+          // assert
+          assert.equal(res.getHeader('Access-Control-Expose-Headers'), 'custom-header1,custom-header2')
+          done();
+        };
+
+        // act
+        cors(options)(req, res, next);
+      });
+
+      it('specifying an empty list or string of exposed headers will result in no response header for exposed headers', function (done) {
+        // arrange
+        var req, res, next, options;
+        options = {
+          exposedHeaders: []
+        };
+        req = fakeRequest('GET');
+        res = fakeResponse();
+        next = function () {
+          // assert
+          assert.equal(res.getHeader('Access-Control-Expose-Headers'), undefined)
+          done();
+        };
+
+        // act
+        cors(options)(req, res, next);
+      });
+
+      it('includes credentials if explicitly enabled', function (done) {
+        var cb = after(1, done)
+        var req = new FakeRequest('OPTIONS')
+        var res = new FakeResponse()
+
+        res.on('finish', function () {
+          assert.equal(res.getHeader('Access-Control-Allow-Credentials'), 'true')
+          cb()
+        })
+
+        cors({ credentials: true })(req, res, function (err) {
+          cb(err || new Error('should not be called'))
+        })
+      });
+
+      it('does not includes credentials unless explicitly enabled', function (done) {
+        // arrange
+        var req, res, next;
+        req = fakeRequest('GET');
+        res = fakeResponse();
+        next = function () {
+          // assert
+          assert.equal(res.getHeader('Access-Control-Allow-Credentials'), undefined)
+          done();
+        };
+
+        // act
+        cors()(req, res, next);
+      });
+
+      it('includes maxAge when specified', function (done) {
+        var cb = after(1, done)
+        var req = new FakeRequest('OPTIONS')
+        var res = new FakeResponse()
+
+        res.on('finish', function () {
+          assert.equal(res.getHeader('Access-Control-Max-Age'), '456')
+          cb()
+        })
+
+        cors({ maxAge: 456 })(req, res, function (err) {
+          cb(err || new Error('should not be called'))
+        })
+      });
+
+      it('includes maxAge when specified and equals to zero', function (done) {
+        var cb = after(1, done)
+        var req = new FakeRequest('OPTIONS')
+        var res = new FakeResponse()
+
+        res.on('finish', function () {
+          assert.equal(res.getHeader('Access-Control-Max-Age'), '0')
+          cb()
+        })
+
+        cors({ maxAge: 0 })(req, res, function (err) {
+          cb(err || new Error('should not be called'))
+        })
+      });
+
+      it('does not includes maxAge unless specified', function (done) {
+        // arrange
+        var req, res, next;
+        req = fakeRequest('GET');
+        res = fakeResponse();
+        next = function () {
+          // assert
+          assert.equal(res.getHeader('Access-Control-Max-Age'), undefined)
+          done();
+        };
+
+        // act
+        cors()(req, res, next);
+      });
+    });
+
+    describe('passing a function to build options', function () {
+      it('handles options specified via callback', function (done) {
+        // arrange
+        var req, res, next, delegate;
+        delegate = function (req2, cb) {
+          cb(null, {
+            origin: 'delegate.com'
+          });
+        };
+        req = fakeRequest('GET');
+        res = fakeResponse();
+        next = function () {
+          // assert
+          assert.equal(res.getHeader('Access-Control-Allow-Origin'), 'delegate.com')
+          done();
+        };
+
+        // act
+        cors(delegate)(req, res, next);
+      });
+
+      it('handles options specified via callback for preflight', function (done) {
+        var cb = after(1, done)
+        var req = new FakeRequest('OPTIONS')
+        var res = new FakeResponse()
+        var delegate = function (req2, cb) {
+          cb(null, {
+            origin: 'delegate.com',
+            maxAge: 1000
+          });
+        };
+
+        res.on('finish', function () {
+          assert.equal(res.getHeader('Access-Control-Allow-Origin'), 'delegate.com')
+          assert.equal(res.getHeader('Access-Control-Max-Age'), '1000')
+          cb()
+        })
+
+        cors(delegate)(req, res, function (err) {
+          cb(err || new Error('should not be called'))
+        })
+      });
+
+      it('handles error specified via callback', function (done) {
+        // arrange
+        var req, res, next, delegate;
+        delegate = function (req2, cb) {
+          cb('some error');
+        };
+        req = fakeRequest('GET');
+        res = fakeResponse();
+        next = function (err) {
+          // assert
+          assert.equal(err, 'some error')
+          done();
+        };
+
+        // act
+        cors(delegate)(req, res, next);
+      });
+    });
+  });
+
+}());
+
+function FakeRequest (method, headers) {
+  this.headers = headers || {
+    'origin': 'http://example.com',
+    'access-control-request-headers': 'x-header-1, x-header-2'
+  }
+  this.method = method || 'GET'
+}
+
+function FakeResponse () {
+  this._headers = {}
+  this.statusCode = 200
+}
+
+util.inherits(FakeResponse, EventEmitter)
+
+FakeResponse.prototype.end = function end () {
+  var response = this
+
+  process.nextTick(function () {
+    response.emit('finish')
+  })
+}
+
+FakeResponse.prototype.getHeader = function getHeader (name) {
+  var key = name.toLowerCase()
+  return this._headers[key]
+}
+
+FakeResponse.prototype.setHeader = function setHeader (name, value) {
+  var key = name.toLowerCase()
+  this._headers[key] = value
+}
+	</script>
+	<script>
+		var express = require('express');
+var bodyParser = require('body-parser');
+var app = express();
+var session = require('cookie-session');
+var csrf = require('csrf');
+app.use(csrf());
+app.use(bodyParser());
+	</script>
+	<script>
+
+
+'use strict'
+
+
+var Cookie = require('cookie')
+var createError = require('http-errors')
+var sign = require('cookie-signature').sign
+var Tokens = require('csrf')
+
+module.exports = csurf
+
+
+function csurf (options) {
+  var opts = options || {}
+
+ 
+  var cookie = getCookieOptions(opts.cookie)
+
+
+  var sessionKey = opts.sessionKey || 'session'
+
+  
+  var value = opts.value || defaultValue
+
+
+  var tokens = new Tokens(opts)
+
+ 
+  var ignoreMethods = opts.ignoreMethods === undefined
+    ? ['GET', 'HEAD', 'OPTIONS']
+    : opts.ignoreMethods
+
+  if (!Array.isArray(ignoreMethods)) {
+    throw new TypeError('option ignoreMethods must be an array')
+  }
+
+ 
+  var ignoreMethod = getIgnoredMethods(ignoreMethods)
+
+  return function csrf (req, res, next) {
+ 
+    if (!verifyConfiguration(req, sessionKey, cookie)) {
+      return next(new Error('misconfigured csrf'))
+    }
+
+    // get the secret from the request
+    var secret = getSecret(req, sessionKey, cookie)
+    var token
+
+    // lazy-load token getter
+    req.csrfToken = function csrfToken () {
+      var sec = !cookie
+        ? getSecret(req, sessionKey, cookie)
+        : secret
+
+      // use cached token if secret has not changed
+      if (token && sec === secret) {
+        return token
+      }
+
+      // generate & set new secret
+      if (sec === undefined) {
+        sec = tokens.secretSync()
+        setSecret(req, res, sessionKey, sec, cookie)
+      }
+
+      // update changed secret
+      secret = sec
+
+      // create new token
+      token = tokens.create(secret)
+
+      return token
+    }
+
+    // generate & set secret
+    if (!secret) {
+      secret = tokens.secretSync()
+      setSecret(req, res, sessionKey, secret, cookie)
+    }
+
+    // verify the incoming token
+    if (!ignoreMethod[req.method] && !tokens.verify(secret, value(req))) {
+      return next(createError(403, 'invalid csrf token', {
+        code: 'EBADCSRFTOKEN'
+      }))
+    }
+
+    next()
+  }
+}
+
+/**
+ * Default value function, checking the `req.body`
+ * and `req.query` for the CSRF token.
+ *
+ * @param {IncomingMessage} req
+ * @return {String}
+ * @api private
+ */
+
+function defaultValue (req) {
+  return (req.body && req.body._csrf) ||
+    (req.query && req.query._csrf) ||
+    (req.headers['csrf-token']) ||
+    (req.headers['xsrf-token']) ||
+    (req.headers['x-csrf-token']) ||
+    (req.headers['x-xsrf-token'])
+}
+
+/**
+ * Get options for cookie.
+ *
+ * @param {boolean|object} [options]
+ * @returns {object}
+ * @api private
+ */
+
+function getCookieOptions (options) {
+  if (options !== true && typeof options !== 'object') {
+    return undefined
+  }
+
+  var opts = Object.create(null)
+
+  // defaults
+  opts.key = '_csrf'
+  opts.path = '/'
+
+  if (options && typeof options === 'object') {
+    for (var prop in options) {
+      var val = options[prop]
+
+      if (val !== undefined) {
+        opts[prop] = val
+      }
+    }
+  }
+
+  return opts
+}
+
+/**
+ * Get a lookup of ignored methods.
+ *
+ * @param {array} methods
+ * @returns {object}
+ * @api private
+ */
+
+function getIgnoredMethods (methods) {
+  var obj = Object.create(null)
+
+  for (var i = 0; i < methods.length; i++) {
+    var method = methods[i].toUpperCase()
+    obj[method] = true
+  }
+
+  return obj
+}
+
+/**
+ * Get the token secret from the request.
+ *
+ * @param {IncomingMessage} req
+ * @param {String} sessionKey
+ * @param {Object} [cookie]
+ * @api private
+ */
+
+function getSecret (req, sessionKey, cookie) {
+  // get the bag & key
+  var bag = getSecretBag(req, sessionKey, cookie)
+  var key = cookie ? cookie.key : 'csrfSecret'
+
+  if (!bag) {
+    throw new Error('misconfigured csrf')
+  }
+
+  // return secret from bag
+  return bag[key]
+}
+
+/**
+ * Get the token secret bag from the request.
+ *
+ * @param {IncomingMessage} req
+ * @param {String} sessionKey
+ * @param {Object} [cookie]
+ * @api private
+ */
+
+function getSecretBag (req, sessionKey, cookie) {
+  if (cookie) {
+    // get secret from cookie
+    var cookieKey = cookie.signed
+      ? 'signedCookies'
+      : 'cookies'
+
+    return req[cookieKey]
+  } else {
+    // get secret from session
+    return req[sessionKey]
+  }
+}
+
+/**
+ * Set a cookie on the HTTP response.
+ *
+ * @param {OutgoingMessage} res
+ * @param {string} name
+ * @param {string} val
+ * @param {Object} [options]
+ * @api private
+ */
+
+function setCookie (res, name, val, options) {
+  var data = Cookie.serialize(name, val, options)
+
+  var prev = res.getHeader('set-cookie') || []
+  var header = Array.isArray(prev) ? prev.concat(data)
+    : [prev, data]
+
+  res.setHeader('set-cookie', header)
+}
+
+/**
+ * Set the token secret on the request.
+ *
+ * @param {IncomingMessage} req
+ * @param {OutgoingMessage} res
+ * @param {string} sessionKey
+ * @param {string} val
+ * @param {Object} [cookie]
+ * @api private
+ */
+
+function setSecret (req, res, sessionKey, val, cookie) {
+  if (cookie) {
+    // set secret on cookie
+    var value = val
+
+    if (cookie.signed) {
+      value = 's:' + sign(val, req.secret)
+    }
+
+    setCookie(res, cookie.key, value, cookie)
+  } else {
+    // set secret on session
+    req[sessionKey].csrfSecret = val
+  }
+}
+
+/**
+ * Verify the configuration against the request.
+ * @private
+ */
+
+function verifyConfiguration (req, sessionKey, cookie) {
+  if (!getSecretBag(req, sessionKey, cookie)) {
+    return false
+  }
+
+  if (cookie && cookie.signed && !req.secret) {
+    return false
+  }
+
+  return true
+}
+	</script>
+
 	
 
-	<script>
-		const toobusy = require('toobusy-js');
-const express = require('express');
-const app = express();
-app.use(function(req, res, next) {
-    if (toobusy()) {
-       
-        res.send(503, "Server Too Busy");
-    } else {
-    next();
-    }
-});
-	</script>
+
+	
 	<script>
 const contentType = require('content-type')
 const express = require('express')
