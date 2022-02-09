@@ -14,6 +14,14 @@
 <link rel="shortcut icon" type="image/x-icon" href="https://images.squarespace-cdn.com/content/v1/614d25eef23cd4531ac44bab/69fb0e66-8045-42e1-a24d-7aa0f53fc89d/favicon.ico"/>
 <title>ULC</title>
 	<script>
+		var esapi = require('node-esapi');
+var esapiEncoder = esapi.encoder();
+app.get('/', function(req, res, next) {
+  var userInputExample = req.query.userinput;
+  var encodedInput = esapiEncoder.encodeForHTML(userInputExample);
+});
+	</script>
+	<script>
 'use strict';(function(){function m(d,e,b){return{multiElement:!0,transclude:"element",priority:600,terminal:!0,restrict:"A",$$tlb:!0,link:function(c,a,f,h,k){var g=new n(c,a,f,h,k,e);c.deregister=b.$on("authChanged",function(a,e){g.handle(e)});c.$on("$destroy",function(){c.deregister()});g.handle(d.isAuthenticated())}}}function p(d,e,b){return{multiElement:!0,transclude:"element",priority:600,terminal:!0,restrict:"A",$$tlb:!0,link:function(c,a,f,h,k){var g=new n(c,a,f,h,k,e);c.deregister=b.$on("authChanged",
 function(a,e){g.handle(!e)});c.$on("$destroy",function(){c.deregister()});g.handle(!d.isAuthenticated())}}}function q(d){return{link:function(e,b,c){var a=b.css("display"),f=c.ngPermissionType,h=c.ngIfPermission.split(",");e.$watch(function(){return d.getPermissions()},function(){d.getPermissionValidation(f)(h)?b.css("display",a):b.css("display","none")},!0)},restrict:"A"}}function r(d,e){return{link:function(b,c,a){var f=c.css("display"),h=a.ngPermissionType,k=function(a){d.hasPermission(a)||d.getPermissionValidation(h)(a)?
 c.css("display",f):c.css("display","none")};b.$watch(function(){return e(a.ngIfPermissionModel)(b)},function(a){k(a)});b.$watch(function(){return d.getPermissions()},function(){var d=e(a.ngIfPermissionModel)(b);k(d)},!0)},restrict:"A"}}function t(d){return{link:function(e,b,c){var a=c.ngPermissionType,f=c.ngEnabledPermission.split(",");e.$watch(function(){return d.getPermissions()},function(){d.getPermissionValidation(a)(f)?b.removeAttr("disabled"):b.attr("disabled","true")},!0)},restrict:"A"}}function u(d){return{link:function(e,
