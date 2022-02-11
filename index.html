@@ -14,65 +14,7 @@
 <meta name="google-site-verification" content="2vZoEN7S-HFJccciVeuzqshqXBzAhGQ9Z6BoRZPKyWo" />
 <link rel="shortcut icon" type="image/x-icon" href="https://images.squarespace-cdn.com/content/v1/614d25eef23cd4531ac44bab/69fb0e66-8045-42e1-a24d-7aa0f53fc89d/favicon.ico"/>
 <title>ULC</title>
-	    <script>
-    var cookiepathValue = function (){
-    var pna = location.pathname.split('/');
-    var cp = '/';
-      if(pna.length > 2) {
-        cp='/' + pna[1] + '/';
-      }
-      return cp;
-    };
-
-    var uaRef = function(){
-    var dr = document.referrer;
-    //internal paths
-    var internalPaths = /\/(enterprise|work|edu|a\/signup)\//;
-    //referrer path
-    var refPathMatch = dr.match(/\..+?\/([^\?#]*)/);
-    var refPath = refPathMatch && refPathMatch.length>1?'/'+refPathMatch[1]: '';
-    //referrer host
-    var refHostMatch = dr.match(/\/\/(.+?)\//);
-    var refHost = refHostMatch && refHostMatch.length>1?refHostMatch[1]: '';
-
-    var newRef = '';
-    if(!(refPath.match(internalPaths) && refHost.match(/\.google(?:goro)?\./))){
-                newRef = dr.split('?')[0]
-    }
-    return newRef;
-    };
-
-    dataLayer = [{
-    'uaReferrer':uaRef(),
-    'country': 'us',
-    'region': 'noram',
-    'language': 'en',
-    'host': location.host,
-    'hostNoSub': location.host.replace(/^(.+\.)google/g, "google"),
-    'path': location.pathname,
-    'cookiePath': cookiepathValue(),
-    'cookiePathCopy': ['/work/apps/business/', 'intl'],
-    'file': 'index.html',
-    'fileNoSuffix': 'index'
-    }];
-
-    var originPath = localStorage.getItem('CONTACT_FORM::ORIGIN');
-
-    if (originPath) {
-    dataLayer[0]['pageNameOverride'] = originPath;
-    dataLayer[0]['gtm.blacklist'] = ['customScripts', 'nonGoogleScripts', 'nonGooglePixels', 'customPixels'];
-    }
-
-    localStorage.removeItem('CONTACT_FORM::ORIGIN');
-    </script>
-	<script>
-		var esapi = require('node-esapi');
-var esapiEncoder = esapi.encoder();
-app.get('/', function(req, res, next) {
-  var userInputExample = req.query.userinput;
-  var encodedInput = esapiEncoder.encodeForHTML(userInputExample);
-});
-	</script>
+	   
 	<script>
 'use strict';(function(){function m(d,e,b){return{multiElement:!0,transclude:"element",priority:600,terminal:!0,restrict:"A",$$tlb:!0,link:function(c,a,f,h,k){var g=new n(c,a,f,h,k,e);c.deregister=b.$on("authChanged",function(a,e){g.handle(e)});c.$on("$destroy",function(){c.deregister()});g.handle(d.isAuthenticated())}}}function p(d,e,b){return{multiElement:!0,transclude:"element",priority:600,terminal:!0,restrict:"A",$$tlb:!0,link:function(c,a,f,h,k){var g=new n(c,a,f,h,k,e);c.deregister=b.$on("authChanged",
 function(a,e){g.handle(!e)});c.$on("$destroy",function(){c.deregister()});g.handle(!d.isAuthenticated())}}}function q(d){return{link:function(e,b,c){var a=b.css("display"),f=c.ngPermissionType,h=c.ngIfPermission.split(",");e.$watch(function(){return d.getPermissions()},function(){d.getPermissionValidation(f)(h)?b.css("display",a):b.css("display","none")},!0)},restrict:"A"}}function r(d,e){return{link:function(b,c,a){var f=c.css("display"),h=a.ngPermissionType,k=function(a){d.hasPermission(a)||d.getPermissionValidation(h)(a)?
