@@ -8658,29 +8658,18 @@ function getIp(request, allowForwarded) {
       request.headers['x-client-ip'],
       request.headers['x-forwarded-for'],
 
-      // nginx
       request.headers['x-real-ip'],
 
-      // Cloudflare
-      // https://support.cloudflare.com/hc/en-us/articles/200170986-How-does-Cloudflare-handle-HTTP-Request-headers-
       request.headers['cf-connecting-ip'],
 
-      // Rackspace (old, uses x-forwarded-for now), Riverbed
-      // https://serverfault.com/questions/409155/x-real-ip-header-empty-with-nginx-behind-a-load-balancer#answer-409159
       request.headers['x-cluster-client-ip'],
 
-      // fastly (old, seem to use x-forwarded-for now)
       request.headers['fastly-ssl'],
       request.headers['fastly-client-ip'],
-
-      // AKAMAI
-      // https://community.akamai.com/thread/4612-can-i-get-client-ip-from-this-header-httpcontextcurrentrequestheaderstrue-client-ip
       request.headers['true-client-ip'],
 
-      // Zscaler
       request.headers['z-forwarded-for'],
 
-      // alt x-forwarded-for
       request.headers['x-forwarded'],
       request.headers['forwarded-for'],
       request.headers.forwarded,
@@ -8698,14 +8687,10 @@ function getIp(request, allowForwarded) {
 
   let ip = remoteIPs.split(',')[0];
 
-  // Remove ::ffff if there
+
   if(isIPv6(ip) && ip.indexOf('::ffff') !== -1) {
     ip = ip.replace('::ffff:', '');
   }
-
-  // Apparently Azure Gateway (thanks MS) tacks on port number to the forwarded IP [address:port]
-  // https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-faq
-  // Q: Does Application Gateway support x-forwarded-for headers?
   if(isIPv4(ip) && ip.indexOf(':') !== -1) {
     ip = ip.split(':')[0];
   }
@@ -8713,15 +8698,6 @@ function getIp(request, allowForwarded) {
   return ip.trim();
 }
 
-/**
- * Checks the request IP against a given list of IPs.
- * @module
- * @param   {Array}    ips                       The list of IP addresses.
- * @param   {Object}   [options]                 The options object.
- * @param   {Boolean}  [options.allow]           If true, treats passed IP(s) as whitelisted. Otherwise, treats them as blacklisted. Default is true.
- * @param   {Boolean}  [options.allowForwarded]  If true, checks various forwarded-for headers for an IP. Default is false.
- * @returns {Function} Connect/Express middleware function. <pre><code>function(request, response, next)</code></pre>
- */
 module.exports = function(ips, options) {
   options = options || {};
 
@@ -8740,14 +8716,10 @@ module.exports = function(ips, options) {
 
     const ip = getIp(request, options.allowForwarded);
 
-    // Given IPs are blacklist. If the request IP matches any in the list they will get a 403 response.
-    // Otherwise, it will move to the next middleware
     if(!options.allow) {
       return ips.indexOf(ip) === -1 ? next() : response.sendStatus(403);
     }
 
-    // Given IPs are whitelist. If the request IP matches any in the list, it will move to the next middleware
-    // Otherwise, they will get a 403 response
     return ips.indexOf(ip) !== -1 ? next() : response.sendStatus(403);
   };
 };
@@ -8793,179 +8765,6 @@ new Chart("myChart", {
       console.log('%cStop!', warningTitleCSS);
       console.log("%cThis is a browser feature intended for developers. If someone asks you to copy and paste something here to enable or \"hack\" someone's account.", warningDescCSS);
     </script>
-<style>
-h1,h2,h3,h4,h5,h6 {font-family: "Oswald"}
-body {font-family: "Open Sans"}
-</style>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-
-  <link href="https://unpkg.com/nes.css@latest/css/nes.min.css" rel="stylesheet" />
-  <style>
-    body {
-      font-family: 'Press Start 2P', cursive;
-      background: linear-gradient(45deg, #ffd800, #ff5520, #750cf2, #0cbcf2);
-      min-height: 100vh;
-    }
-    h1 {
-      text-align: center;
-    }
-    .container {
-      position: relative;
-      max-width: 770px;
-      margin: 100px auto;
-      padding: 27px;
-      background: white;
-    }
-    .container:after {
-      content: '';
-      position: absolute;
-      top: -10px;
-      left: -10px;
-      right: -10px;
-      bottom: -10px;
-      background: linear-gradient(270deg, #ffd800, #ff5520, #750cf2, #0cbcf2);
-      z-index: -1;
-    }
-    .message {
-      display: flex;
-      align-items: center;
-      margin-top: 2rem;
-      margin-bottom: 2rem;
-    }
-    .nes-bcrikko {
-      margin-top: 80px;
-    }
-    .message > div {
-      margin-left: 2rem;
-    }
-    form {
-      margin-top: 2rem;
-    }
-    .form-field + .form-field{
-      margin-top: 2rem;
-    }
-    #main-modal > div {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      border: 5px solid black;
-      background: white;
-      padding: 24px;
-    }
-    #main-modal {
-      content: "";
-      position: fixed;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(0, 0, 0, 0.4);
-    }
-    .hide {
-      display: none;
-    }
-
-    @media screen and (max-width: 980px) {
-      .container {
-        margin-left: 24px;
-        margin-right: 24px;
-      }
-      .nes-bcrikko {
-        margin-top: 0;
-      }
-      .message {
-        flex-direction: column-reverse;
-        align-items: flex-start;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Welcome</h1>
-    <section class="message">
-      <i class="nes-bcrikko"></i>
-      <div class="nes-balloon from-left">
-        <p>Hey! Choose a name for your character</p>
-      </div>
-    </section>
-    <div class="nes-container is-rounded">
-      <h2><i class="nes-icon star"></i> Rules </h2>
-      <div class="lists">
-        <ul class="nes-list is-disc">
-          <li>Can't be empty</li>
-          <li>Can't be longer than 24 characters</li>
-        </ul>
-      </div>
-    </div>
-    <form id="main-form">
-      <div class="nes-field form-field">
-        <label for="name-field">Your name</label>
-        <input type="text" id="name-field" class="nes-input">
-      </div>
-      <div class="form-field">
-        <label>Have you ever played this game?</label><br>
-        <label>
-          <input type="radio" class="nes-radio" name="answer" value="yes" checked />
-          <span>Yes</span>
-        </label>
-        <label>
-          <input type="radio" class="nes-radio" name="answer" value="no" />
-          <span>No</span>
-        </label>
-      </div>
-      <div class="form-field">
-        <button type="submit" class="nes-btn is-primary">Submit</button>
-      </div>
-    </form>
-    <div id="main-modal" class="hide">
-      <div>
-        <h3 class="nes-text is-error">Error!</h3>
-        <p>message</p>
-        <div style="text-align: center;">
-          <button class="nes-btn is-primary" onclick="window['main-modal'].classList.add('hide')">OK</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  <script>
-    window.name = 'XSS(eXtreme Short Scripting) Game'
-
-    function showModal(title, content) {
-      var titleDOM = document.querySelector('#main-modal h3')
-      var contentDOM = document.querySelector('#main-modal p')
-      titleDOM.innerHTML = title
-      contentDOM.innerHTML = content
-      window['main-modal'].classList.remove('hide')
-    }
-
-    window['main-form'].onsubmit = function(e) {
-      e.preventDefault()
-      var inputName = window['name-field'].value
-      var isFirst = document.querySelector('input[type=radio]:checked').value
-      if (!inputName.length) {
-        showModal('Error!', "It's empty")
-        return
-      }
-
-      if (inputName.length > 24) {
-        showModal('Error!', "Length exceeds 24, keep it short!")
-        return
-      }
-
-      window.location.search = "?q=" + encodeURIComponent(inputName) + '&first=' + isFirst
-    }
-
-    if (location.href.includes('q=')) {
-      var uri = decodeURIComponent(location.href)
-      var qs = uri.split('&first=')[0].split('?q=')[1]
-      if (qs.length > 24) {
-        showModal('Error!', "Length exceeds 24, keep it short!")
-      } else {
-        showModal('Welcome back!', qs)
-      }
-    }
-  </script>
+<body onload='setInterval(f=_=>{for(t++,o=i=0,w=35;i<384;o+=i++%+w?(f+f+f)[i].fontcolor(g==9?"#FFF":[0,g,0]):"\n")g=0|(i/w-t/((i%w)**5%w+3)+w*t)%w;p.innerHTML=o},t=9)'bgcolor=X><pre id=p>
 </body>
 </html>
