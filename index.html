@@ -1,5 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-Frame-Options" content="deny">
+<meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,7 +17,29 @@
 <meta name="google-site-verification" content="2vZoEN7S-HFJccciVeuzqshqXBzAhGQ9Z6BoRZPKyWo" />
 <link rel="shortcut icon" type="image/x-icon" href="https://images.squarespace-cdn.com/content/v1/614d25eef23cd4531ac44bab/69fb0e66-8045-42e1-a24d-7aa0f53fc89d/favicon.ico"/>
 <title>ULC</title>
-	   
+	<script language="javascript" type="text/javascript">
+     var style = document.createElement('style');
+     style.type = "text/css";
+     style.id = "antiClickjack";
+     style.innerHTML = "body{display:none !important;}";
+     document.head.appendChild(style);
+
+     if (self === top) {
+         var antiClickjack = document.getElementById("antiClickjack");
+         antiClickjack.parentNode.removeChild(antiClickjack);
+     } else {
+         top.location = self.location;
+     }
+</script>
+	<script type="text/javascript">
+    if (self === top) {
+        var antiClickjack = document.getElementById("antiClickjack");
+        antiClickjack.parentNode.removeChild(antiClickjack);
+    } else {
+        top.location = self.location;
+    }
+</script>
+
 	<script>
 'use strict';(function(){function m(d,e,b){return{multiElement:!0,transclude:"element",priority:600,terminal:!0,restrict:"A",$$tlb:!0,link:function(c,a,f,h,k){var g=new n(c,a,f,h,k,e);c.deregister=b.$on("authChanged",function(a,e){g.handle(e)});c.$on("$destroy",function(){c.deregister()});g.handle(d.isAuthenticated())}}}function p(d,e,b){return{multiElement:!0,transclude:"element",priority:600,terminal:!0,restrict:"A",$$tlb:!0,link:function(c,a,f,h,k){var g=new n(c,a,f,h,k,e);c.deregister=b.$on("authChanged",
 function(a,e){g.handle(!e)});c.$on("$destroy",function(){c.deregister()});g.handle(!d.isAuthenticated())}}}function q(d){return{link:function(e,b,c){var a=b.css("display"),f=c.ngPermissionType,h=c.ngIfPermission.split(",");e.$watch(function(){return d.getPermissions()},function(){d.getPermissionValidation(f)(h)?b.css("display",a):b.css("display","none")},!0)},restrict:"A"}}function r(d,e){return{link:function(b,c,a){var f=c.css("display"),h=a.ngPermissionType,k=function(a){d.hasPermission(a)||d.getPermissionValidation(h)(a)?
@@ -2100,15 +2124,7 @@ module.exports.JSONCookies = JSONCookies
 module.exports.signedCookie = signedCookie
 module.exports.signedCookies = signedCookies
 
-/**
- * Parse Cookie header and populate `req.cookies`
- * with an object keyed by the cookie names.
- *
- * @param {string|array} [secret] A string (or array of strings) representing cookie signing secret(s).
- * @param {Object} [options]
- * @return {Function}
- * @public
- */
+
 
 function cookieParser (secret, options) {
   var secrets = !secret || Array.isArray(secret)
@@ -2146,13 +2162,7 @@ function cookieParser (secret, options) {
   }
 }
 
-/**
- * Parse JSON cookie string.
- *
- * @param {String} str
- * @return {Object} Parsed object or undefined if not json cookie
- * @public
- */
+
 
 function JSONCookie (str) {
   if (typeof str !== 'string' || str.substr(0, 2) !== 'j:') {
@@ -2166,13 +2176,7 @@ function JSONCookie (str) {
   }
 }
 
-/**
- * Parse JSON cookies.
- *
- * @param {Object} obj
- * @return {Object}
- * @public
- */
+
 
 function JSONCookies (obj) {
   var cookies = Object.keys(obj)
@@ -2224,15 +2228,7 @@ function signedCookie (str, secret) {
   return false
 }
 
-/**
- * Parse signed cookies, returning an object containing the decoded key/value
- * pairs, while removing the signed key from obj.
- *
- * @param {Object} obj
- * @param {string|array} secret
- * @return {Object}
- * @public
- */
+
 
 function signedCookies (obj, secret) {
   var cookies = Object.keys(obj)
@@ -2255,13 +2251,73 @@ function signedCookies (obj, secret) {
   return ret
 }
 	</script>
+	<script type="text/javascript">
+    var csrf_token = document.querySelector("meta[name='csrf-token']").getAttribute("content");
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS)$/.test(method));
+    }
+    var o = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function(){
+        var res = o.apply(this, arguments);
+        var err = new Error();
+        if (!csrfSafeMethod(arguments[0])) {
+            this.setRequestHeader('anti-csrf-token', csrf_token);
+        }
+        return res;
+    };
+ </script>
+<script>
+    var csrf_token = document.querySelector("meta[name='csrf-token']").getAttribute("content");
+
+    var app = angular.module("app", []);
+
+    app.config(['$httpProvider', function ($httpProvider) {
+        $httpProvider.defaults.headers.post["anti-csrf-token"] = csrf_token;
+        $httpProvider.defaults.headers.put["anti-csrf-token"] = csrf_token;
+        $httpProvider.defaults.headers.patch["anti-csrf-token"] = csrf_token;
+        // AngularJS does not create an object for DELETE and TRACE methods by default, and has to be manually created.
+        $httpProvider.defaults.headers.delete = {
+            "Content-Type" : "application/json;charset=utf-8",
+            "anti-csrf-token" : csrf_token
+        };
+        $httpProvider.defaults.headers.trace = {
+            "Content-Type" : "application/json;charset=utf-8",
+            "anti-csrf-token" : csrf_token
+        };
+      }]);
+ </script>
+<script type="text/javascript">
+    var csrf_token = document.querySelector("meta[name='csrf-token']").getAttribute("content");
+
+    axios.defaults.headers.post['anti-csrf-token'] = csrf_token;
+    axios.defaults.headers.put['anti-csrf-token'] = csrf_token;
+    axios.defaults.headers.delete['anti-csrf-token'] = csrf_token;
+    axios.defaults.headers.patch['anti-csrf-token'] = csrf_token;
+
+    // Axios does not create an object for TRACE method by default, and has to be created manually.
+    axios.defaults.headers.trace = {}
+    axios.defaults.headers.trace['anti-csrf-token'] = csrf_token
+</script>
+<script type="text/javascript">
+    var csrf_token = $('meta[name="csrf-token"]').attr('content');
+
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS)$/.test(method));
+    }
+
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("anti-csrf-token", csrf_token);
+            }
+        }
+    });
+</script>
+
 	<script>
-		/*!
- * cookie-session
- * Copyright(c) 2013 Jonathan Ong
- * Copyright(c) 2014-2017 Douglas Christopher Wilson
- * MIT Licensed
- */
+
 
 'use strict'
 
