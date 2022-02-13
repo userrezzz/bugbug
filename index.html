@@ -10042,25 +10042,23 @@ app.controller("myCtrl", function($scope) {
 });
 </script>
 
-<div ng-app="myShoppingList" ng-cloak ng-controller="myCtrl" class="w3-card-2 w3-margin" style="max-width:400px;">
-  <header class="w3-container w3-light-grey w3-padding-16">
-    <h3>My Shopping List</h3>
-  </header>
-  <ul class="w3-ul">
-    <li ng-repeat="x in products" class="w3-padding-16">{{x}}<span ng-click="removeItem($index)" style="cursor:pointer;" class="w3-right w3-margin-right">×</span></li>
-  </ul>
-  <div class="w3-container w3-light-grey w3-padding-16">
-    <div class="w3-row w3-margin-top">
-      <div class="w3-col s10">
-        <input placeholder="Add shopping items here" ng-model="addMe" class="w3-input w3-border w3-padding">
-      </div>
-      <div class="w3-col s2">
-        <button ng-click="addItem()" class="w3-btn w3-padding w3-green">Add</button>
-      </div>
-    </div>
-    <p class="w3-text-red">{{errortext}}</p>
-  </div>
-</div>
+
+ <canvas id="c">      <script>   M=o=>    a.     map(p=>     
+  {p.t=.1;p.s=0;       o||(p.    D=p.w   );a.    map( q=>    
+  (g=Math             .hypot     (e=p.   x-q     .x,f  =p.   
+  y-q.        y)/      2-1)<     0?o?            (g/=   p.D, 
+  p.t        +=(f      *(z=3     -p.D            -q.D   )+p. 
+  v-q.       v)*g      ,p.s      +=(e     *z     +p.u    -q.u
+  )*g)       :p.D      +=g*g     :1)}    );{     };G=    (c).
+ outerHTML[  "sl"      +"ic"     +"e"    ](0     ,-9)    ;X=c
+.getContext  ("2d"     );;Q=     o=>{    _=a     =[];    for(
+  C of       (G))      ++_,C     !=" "   &&a.    push    ({x:
+  _%62       ,y:1      +_/62|   (+0),    C,w:    "~"    ==C,u
+  :0,v:      0})}      ;setInterval(`    R-->    0&&Q  ();M(c
+ .width      ^=M());;   for(p of(a))    with(p   )(X).font=  
+ "8px "+     "monos"+   "pace",(X).    fillText  (C,5*x,8*y  
+ ),w||(y     +=v+=t/4,   x+=u+=s/8     )`,R=40)  /**~~~~~~   
+  ~~~~~      ~~~~~~~~     ~~~~~~~       ~~~~*/   </script>
 
 
 </body>
