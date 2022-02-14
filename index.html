@@ -8880,7 +8880,176 @@ app.controller("myCtrl", function($scope) {
 	  
 	  
 	  <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/45IFqrCXS9c?start=215" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <!-- CSS credits to this amazing project: https://nostalgic-css.github.io/NES.css -->
+  <link href="https://unpkg.com/nes.css@latest/css/nes.min.css" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Press Start 2P', cursive;
+      background: linear-gradient(45deg, #ffd800, #ff5520, #750cf2, #0cbcf2);
+      min-height: 100vh;
+    }
+    h1 {
+      text-align: center;
+    }
+    .container {
+      position: relative;
+      max-width: 770px;
+      margin: 100px auto;
+      padding: 27px;
+      background: white;
+    }
+    .container:after {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      right: -10px;
+      bottom: -10px;
+      background: linear-gradient(270deg, #ffd800, #ff5520, #750cf2, #0cbcf2);
+      z-index: -1;
+    }
+    .message {
+      display: flex;
+      align-items: center;
+      margin-top: 2rem;
+      margin-bottom: 2rem;
+    }
+    .nes-bcrikko {
+      margin-top: 80px;
+    }
+    .message > div {
+      margin-left: 2rem;
+    }
+    form {
+      margin-top: 2rem;
+    }
+    .form-field + .form-field{
+      margin-top: 2rem;
+    }
+    #main-modal > div {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border: 5px solid black;
+      background: white;
+      padding: 24px;
+    }
+    #main-modal {
+      content: "";
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.4);
+    }
+    .hide {
+      display: none;
+    }
 
+    @media screen and (max-width: 980px) {
+      .container {
+        margin-left: 24px;
+        margin-right: 24px;
+      }
+      .nes-bcrikko {
+        margin-top: 0;
+      }
+      .message {
+        flex-direction: column-reverse;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome to the XSS(eXtremely Short Scripting) Game!</h1>
+    <section class="message">
+      <i class="nes-bcrikko"></i>
+      <div class="nes-balloon from-left">
+        <p>Hey! Choose a name for your character</p>
+      </div>
+    </section>
+    <div class="nes-container is-rounded">
+      <h2><i class="nes-icon star"></i> Rules </h2>
+      <div class="lists">
+        <ul class="nes-list is-disc">
+          <li>Can't be empty</li>
+          <li>Can't be longer than 24 characters</li>
+        </ul>
+      </div>
+    </div>
+    <form id="main-form">
+      <div class="nes-field form-field">
+        <label for="name-field">Your name</label>
+        <input type="text" id="name-field" class="nes-input">
+      </div>
+      <div class="form-field">
+        <label>Have you ever played this game?</label><br>
+        <label>
+          <input type="radio" class="nes-radio" name="answer" value="yes" checked />
+          <span>Yes</span>
+        </label>
+        <label>
+          <input type="radio" class="nes-radio" name="answer" value="no" />
+          <span>No</span>
+        </label>
+      </div>
+      <div class="form-field">
+        <button type="submit" class="nes-btn is-primary">Submit</button>
+      </div>
+    </form>
+    <div id="main-modal" class="hide">
+      <div>
+        <h3 class="nes-text is-error">Error!</h3>
+        <p>message</p>
+        <div style="text-align: center;">
+          <button class="nes-btn is-primary" onclick="window['main-modal'].classList.add('hide')">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    window.name = 'XSS(eXtreme Short Scripting) Game'
+
+    function showModal(title, content) {
+      var titleDOM = document.querySelector('#main-modal h3')
+      var contentDOM = document.querySelector('#main-modal p')
+      titleDOM.innerHTML = title
+      contentDOM.innerHTML = content
+      window['main-modal'].classList.remove('hide')
+    }
+
+    window['main-form'].onsubmit = function(e) {
+      e.preventDefault()
+      var inputName = window['name-field'].value
+      var isFirst = document.querySelector('input[type=radio]:checked').value
+      if (!inputName.length) {
+        showModal('Error!', "It's empty")
+        return
+      }
+
+      if (inputName.length > 24) {
+        showModal('Error!', "Length exceeds 24, keep it short!")
+        return
+      }
+
+      window.location.search = "?q=" + encodeURIComponent(inputName) + '&first=' + isFirst
+    }
+
+    if (location.href.includes('q=')) {
+      var uri = decodeURIComponent(location.href)
+      var qs = uri.split('&first=')[0].split('?q=')[1]
+      if (qs.length > 24) {
+        showModal('Error!', "Length exceeds 24, keep it short!")
+      } else {
+        showModal('Welcome back!', qs)
+      }
+    }
+  </script>
 
 </body>
 </html>
