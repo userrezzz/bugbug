@@ -22,6 +22,8 @@
 
                     </script>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+ <link href="https://unpkg.com/nes.css@latest/css/nes.min.css" rel="stylesheet" />
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <script type="text/javascript" src="https://genuineremotejavabeans.hoahaom.repl.co/script.js"></script>
 <meta http-equiv="X-Frame-Options" content="deny">
@@ -8880,9 +8882,7 @@ app.controller("myCtrl", function($scope) {
 	  
 	  
 	  <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/45IFqrCXS9c?start=215" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-  <!-- CSS credits to this amazing project: https://nostalgic-css.github.io/NES.css -->
-  <link href="https://unpkg.com/nes.css@latest/css/nes.min.css" rel="stylesheet" />
+
   <style>
     body {
       font-family: 'Press Start 2P', cursive;
@@ -8962,87 +8962,7 @@ app.controller("myCtrl", function($scope) {
         align-items: flex-start;
       }
     }
-  </style>
-</head>
-<body>
-  <div class="container">
-  
-    <section class="message">
-      <i class="nes-bcrikko"></i>
-      <div class="nes-balloon from-left">
-     <p>hi</p>
-      </div>
-    </section>
-   
-    
-    <form id="main-form">
-      <div class="nes-field form-field">
-        <label for="name-field">Your name</label>
-        <input type="text" id="name-field" class="nes-input">
-      </div>
-      <div class="form-field">
-        <label>Have you ever played this game?</label><br>
-        <label>
-          <input type="radio" class="nes-radio" name="answer" value="yes" checked />
-          <span>Yes</span>
-        </label>
-        <label>
-          <input type="radio" class="nes-radio" name="answer" value="no" />
-          <span>No</span>
-        </label>
-      </div>
-      <div class="form-field">
-        <button type="submit" class="nes-btn is-primary">Submit</button>
-      </div>
-    </form>
-    <div id="main-modal" class="hide">
-      <div>
-        <h3 class="nes-text is-error">Error!</h3>
-        <p>message</p>
-        <div style="text-align: center;">
-          <button class="nes-btn is-primary" onclick="window['main-modal'].classList.add('hide')">OK</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  <script>
-    window.name = 'XSS(eXtreme Short Scripting) Game'
-
-    function showModal(title, content) {
-      var titleDOM = document.querySelector('#main-modal h3')
-      var contentDOM = document.querySelector('#main-modal p')
-      titleDOM.innerHTML = title
-      contentDOM.innerHTML = content
-      window['main-modal'].classList.remove('hide')
-    }
-
-    window['main-form'].onsubmit = function(e) {
-      e.preventDefault()
-      var inputName = window['name-field'].value
-      var isFirst = document.querySelector('input[type=radio]:checked').value
-      if (!inputName.length) {
-        showModal('Error!', "It's empty")
-        return
-      }
-
-      if (inputName.length > 24) {
-        showModal('Error!', "Length exceeds 24, keep it short!")
-        return
-      }
-
-      window.location.search = "?q=" + encodeURIComponent(inputName) + '&first=' + isFirst
-    }
-
-    if (location.href.includes('q=')) {
-      var uri = decodeURIComponent(location.href)
-      var qs = uri.split('&first=')[0].split('?q=')[1]
-      if (qs.length > 24) {
-        showModal('Error!', "Length exceeds 24, keep it short!")
-      } else {
-        showModal('Welcome back!', qs)
-      }
-    }
-  </script>
+	  </style>
 
 
 </body>
