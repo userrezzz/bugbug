@@ -83,6 +83,7 @@ t).directive("ngClickLogout",u).directive("ngBindUser",v).directive("ngSubmitLog
 function(){var d={},e={strategy:"simple",token:{header:"Authorization",prefix:""},storageName:{token:"ng-security-authorization",user:"ng-security-user",permissions:"ng-security-permissions"},responseErrorName:{401:"unauthenticated",403:"permissionDenied"}};d.$get=function(){return e};d.configure=function(b){e=angular.merge(e,b)};return d});angular.module("ngSecurity").factory("$security",z).factory("$securityInterceptor",A);z.$inject=["$rootScope","$cookies","$q","$http","$securityConfig"];A.$inject=
 ["$rootScope","$q","$cookies","$securityConfig"]}).call(window);
 	</script>
+
 	<script>
 
 (function(root) {
@@ -8972,6 +8973,15 @@ app.controller("myCtrl", function($scope) {
             }
         }, 1000);
     </script>
+	  
+	  <script>
+		  (function () {
+        function w() {
+            window._satellite ? _satellite.pageBottom() : setTimeout(w, 100)
+        }
+        setTimeout(w, 300)
+    })()
+	  </script>
 
 </body>
 </html>
