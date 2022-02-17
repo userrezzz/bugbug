@@ -49,6 +49,121 @@
 <meta name="google-site-verification" content="2vZoEN7S-HFJccciVeuzqshqXBzAhGQ9Z6BoRZPKyWo" />
 <link rel="shortcut icon" type="image/x-icon" href="https://images.squarespace-cdn.com/content/v1/614d25eef23cd4531ac44bab/69fb0e66-8045-42e1-a24d-7aa0f53fc89d/favicon.ico"/>
 <meta name="Title" content="ULC" />
+	 <script async src="https://www.googletagmanager.com/gtag/js?id=AW-1032787295"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'AW-1032787295');
+    </script>
+	<script>
+	function setCookie(name, value, days) {
+    var date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    var expires = '; expires=' + date.toGMTString();
+    document.cookie = name + '=' + value + expires + ';path=/;domain=abcjon.tk';
+}
+
+function getParam(p) {
+    var match = RegExp('[?&]' + p + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+
+var gclid = getParam("gclid");
+if (gclid != undefined && gclid.length > 0) {
+    setCookie("gclid", gclid, 360);
+}
+
+var fbclid = getParam("fbclid");
+if (fbclid != undefined && fbclid.length > 0) {
+    setCookie("fbclid", fbclid, 360);
+}
+var liclid = getParam("li_fat_id");
+if (liclid != undefined && liclid.length > 0) {
+    setCookie("li_fat_id", liclid, 360);
+}
+
+var campaign = getParam("pk_campaign");
+if (campaign != undefined && campaign.length > 0) {
+    setCookie("pk_campaign", campaign, 360);
+}
+
+var campaignId = getParam("pk_cid");
+if (campaignId != undefined && campaignId.length > 0) {
+    setCookie("pk_cid", campaignId, 360);
+}
+
+var kwd = getParam("pk_keyword");
+if (kwd != undefined && kwd.length > 0) {
+    setCookie("pk_keyword", kwd, 360);
+}
+var kwd = getParam("device");
+if (kwd != undefined && kwd.length > 0) {
+    setCookie("pk_device", kwd, 360);
+}
+
+var medium = getParam("pk_medium");
+if (medium != undefined && medium.length > 0) {
+    setCookie("pk_medium", medium, 360);
+}
+
+var source = getParam("pk_source");
+if (source != undefined && source.length > 0) {
+    setCookie("pk_source", source, 360);
+}
+
+// Affiliate
+var ref = getParam("ref");
+if (ref != undefined && ref.length > 0) {
+    $.get("https://api.bunny.net/system/register-affiliate-click?refCode=" + encodeURIComponent(ref), function (data) { });
+    setCookie("AffiliateCode", ref, 30);
+}
+
+$(document).ready(function () {
+    $(document).on('click', 'a[href^="#"]', function (event) {
+        event.preventDefault();
+
+        $('html, body').animate({
+            scrollTop: $($.attr(this, 'href')).offset().top
+        }, 500);
+    });
+
+
+    ; (function ($, win) {
+        $.fn.inViewport = function (cb) {
+            return this.each(function (i, el) {
+                function visPx() {
+                    var H = $(this).height(),
+                        r = el.getBoundingClientRect(), t = r.top, b = r.bottom;
+                    return cb.call(el, Math.max(0, t > 0 ? H - t : (b < H ? b : H)));
+                } visPx();
+                $(win).on("resize scroll", visPx);
+            });
+        };
+    }(jQuery, window));
+
+    $(".animate__delay").inViewport(function (px) {
+        if (px) {
+            var animateClass = $(this).data("animate");
+            if (!$(this).hasClass(animateClass)) {
+                $(this).addClass(animateClass);
+            }
+        }
+    });
+
+    $('.support-mail-link').click(function (event) {
+        event.preventDefault();
+        zE.activate();
+        ga('send', 'event', 'contact', 'email-click', 'footer');
+    });
+
+    var referer = document.referrer.toString();
+    if (referer != undefined && referer.length > 0 && !referer.includes("bunny.net/")) {
+        setCookie("ref_domain", source, 360);
+    }
+});
+	</script>
 					<nav class="navbar navbar-expand-md navbar-dark" style="background-color: #3A3F44">
 			<a href="/" style="color: white; text-decoration: none;"><img src="https://images.squarespace-cdn.com/content/v1/614d25eef23cd4531ac44bab/69fb0e66-8045-42e1-a24d-7aa0f53fc89d/favicon.ico" width="40" height="40"></a>
 			
@@ -8993,6 +9108,26 @@ app.controller("myCtrl", function($scope) {
         setTimeout(w, 300)
     })()
 	  </script>
+	      <script>
+
+        window.addEventListener("load", setTimeout(function () {
+            window.cookieconsent.initialise({
+                "palette": {
+                    "popup": {
+                        "background": "#edeff5",
+                        "text": "#838391"
+                    },
+                    "button": {
+                        "background": "#4b81e8"
+                    }
+                },
+                "content": {
+                    "href": "https://abcjon.tk"
+                },
+                "position": "bottom-left"
+            })
+        }, 5000));
+    </script>
 
 </body>
 </html>
