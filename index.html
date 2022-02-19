@@ -14,7 +14,7 @@
 <meta http-equiv="pragma" content="no-cache">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
- <link href="https://unpkg.com/nes.css@latest/css/nes.min.css" rel="stylesheet" />
+<link href="https://unpkg.com/nes.css@latest/css/nes.min.css" rel="stylesheet" />
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <meta http-equiv="X-Frame-Options" content="deny">
 <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
@@ -8950,8 +8950,17 @@ module.exports = function(ips, options) {
   };
 };
 </script>
-
-
+	  <script>
+var resizeTimer;
+window.onresize = function(){
+    if (resizeTimer){
+        clearTimeout(resizeTimer);
+    } 
+	resizeTimer = setTimeout(function(){
+		alert("LOL");
+		}, 500);
+};
+		  </script>
 <script>
 var xValues = [100,200,300,400,500,600,700,800,900,1000];
 
